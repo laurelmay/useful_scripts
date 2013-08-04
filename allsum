@@ -1,0 +1,51 @@
+#!/bin/bash
+
+#License: MIT License https://raw.github.com/kalaker/useful_scripts/master/LICENSE
+#Git Repo: https://github.com/kalaker/useful_scripts/
+
+function sha256(){
+  echo "Generating SHA256 sum..."
+  sha256sum "$sumdo"
+}
+function sha1(){
+  echo "Generating SHA1 sum..."
+  sha1sum "$sumdo"
+}
+function md5(){
+  echo "Generating MD5 sum..."
+  md5sum "$sumdo"
+}
+
+file=$1
+if [ -z "$file" ]
+then
+  echo "Filename not provided."
+  read -p "What would you like to find the sum for? " file
+  for sumdo in "$file"
+  do
+    echo "################################################################################"
+    echo "Sums for $sumdo"
+    sha256
+    sha1
+    md5
+    echo "################################################################################"
+    echo ""
+  done
+else
+  until [ -z "$1" ]
+  do
+    file=$1
+    for sumdo in "$file"
+    do
+      echo "################################################################################"
+      echo "Sums for $sumdo"
+      sha256
+      sha1
+      md5
+      echo "################################################################################"
+      echo ""
+    done
+    shift
+  done
+fi
+exit

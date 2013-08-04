@@ -21,7 +21,7 @@ if [ -z "$file" ]
 then
   echo "Filename not provided."
   read -p "What would you like to find the sum for? " file
-  for sumdo in "$file"
+  for sumdo in $file
   do
     echo "################################################################################"
     echo "Sums for $sumdo"
@@ -35,7 +35,7 @@ else
   until [ -z "$1" ]
   do
     file=$1
-    for sumdo in "$file"
+    for sumdo in $file
     do
       echo "################################################################################"
       echo "Sums for $sumdo"

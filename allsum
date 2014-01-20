@@ -15,6 +15,7 @@ function md5(){
   echo "Generating MD5 sum..."
   md5sum "$sumdo"
 }
+
 file=$1
 if [ -z "$file" ]
 then

@@ -15,7 +15,6 @@ function md5(){
   echo "Generating MD5 sum..."
   md5sum "$sumdo"
 }
-
 file=$1
 if [ -z "$file" ]
 then
@@ -23,6 +22,7 @@ then
   read -p "What would you like to find the sum for? " file
   for sumdo in $file
   do
+    echo ""
     echo "################################################################################"
     echo "Sums for $sumdo"
     sha256
@@ -32,11 +32,12 @@ then
     echo ""
   done
 else
-  until [ -z "$1" ]
+ until [ -z "$1" ]
   do
     file=$1
     for sumdo in $file
     do
+      echo ""
       echo "################################################################################"
       echo "Sums for $sumdo"
       sha256

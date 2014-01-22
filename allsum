@@ -3,6 +3,10 @@
 #License: MIT License https://raw.github.com/kalaker/useful_scripts/master/LICENSE
 #Git Repo: https://github.com/kalaker/useful_scripts/
 
+function sha512(){
+  echo "Generating SHA512 sum..."
+  sha512sum "$sumdo"
+}
 function sha256(){
   echo "Generating SHA256 sum..."
   sha256sum "$sumdo"
@@ -26,9 +30,10 @@ then
     echo ""
     echo "################################################################################"
     echo "Sums for $sumdo"
-    sha256
-    sha1
     md5
+    sha1
+    sha256
+    sha512
     echo "################################################################################"
     echo ""
   done
@@ -41,9 +46,10 @@ else
       echo ""
       echo "################################################################################"
       echo "Sums for $sumdo"
-      sha256
-      sha1
       md5
+      sha1
+      sha256
+      sha512
       echo "################################################################################"
       echo ""
     done

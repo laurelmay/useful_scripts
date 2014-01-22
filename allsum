@@ -3,6 +3,10 @@
 #License: MIT License https://raw.github.com/kalaker/useful_scripts/master/LICENSE
 #Git Repo: https://github.com/kalaker/useful_scripts/
 
+function sha512(){
+  echo "Generating SHA512 sum..."
+  sha512sum "$sumdo"
+}
 function sha256(){
   echo "Generating SHA256 sum..."
   sha256sum "$sumdo"
@@ -23,25 +27,29 @@ then
   read -p "What would you like to find the sum for? " file
   for sumdo in $file
   do
+    echo ""
     echo "################################################################################"
     echo "Sums for $sumdo"
-    sha256
-    sha1
     md5
+    sha1
+    sha256
+    sha512
     echo "################################################################################"
     echo ""
   done
 else
-  until [ -z "$1" ]
+ until [ -z "$1" ]
   do
     file=$1
     for sumdo in $file
     do
+      echo ""
       echo "################################################################################"
       echo "Sums for $sumdo"
-      sha256
-      sha1
       md5
+      sha1
+      sha256
+      sha512
       echo "################################################################################"
       echo ""
     done

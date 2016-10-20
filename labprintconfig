@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+echo "==> This script adds the LabPrintBW and LabPrintColor printers."
+echo "==> In order to add and use these printers, you must be connected to the JMU network, either directly or through SSLVPN"
+echo "==> Checking if connected to the JMU network"
+IP_ADDRESS=$(curl -s ipv4bot.whatismyipaddress.com)
+if [[ $IP_ADDRESS != 134.126* ]]; then
+    echo "==> Exiting: Your IP address does not match the expected pattern."
+    exit 1;
+fi
+echo "==> You appear to be connected."
+echo "==> Adding Black & White LabPrint Printer"
+lpadmin -p LabPrintBW -E -v lpd://labremote@labprint.jmu.edu/LabPrintBW -m drv:///sample.drv/generic.ppd
+echo "==> Adding Color LabPrint Printer"
+lpadmin -p LabPrintColor -E -v lpd://labremote@labprint.jmu.edu/LabPrintColor -m drv:///sample.drv/generic.ppd

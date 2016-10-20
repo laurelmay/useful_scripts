@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#License: MIT License https://raw.github.com/kalaker/useful_scripts/master/LICENSE
-#Git Repo: https://github.com/kalaker/useful_scripts/
+#License: MIT License https://raw.github.com/kylelaker/useful_scripts/master/LICENSE
+#Git Repo: https://github.com/kylelaker/useful_scripts/
 
 function md5(){
   echo "Generating MD5 sum for ${i}."

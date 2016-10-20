@@ -9,6 +9,14 @@ if [[ $IP_ADDRESS != 134.126* ]]; then
 fi
 echo "==> You appear to be connected."
 echo "==> Adding Black & White LabPrint Printer"
-lpadmin -p LabPrintBW -E -v lpd://labremote@labprint.jmu.edu/LabPrintBW -m drv:///sample.drv/generic.ppd
+lpadmin -p LabPrintBW -E \
+    -v lpd://labremote@labprint.jmu.edu/LabPrintBW \
+    -m drv:///sample.drv/generic.ppd \
+    -o "Duplex=DuplexNoTumble" \
+    -o "Option1=True"
 echo "==> Adding Color LabPrint Printer"
-lpadmin -p LabPrintColor -E -v lpd://labremote@labprint.jmu.edu/LabPrintColor -m drv:///sample.drv/generic.ppd
+lpadmin -p LabPrintColor -E \
+    -v lpd://labremote@labprint.jmu.edu/LabPrintColor \
+    -m drv:///sample.drv/generic.ppd \
+    -o "Duplex=DuplexNoTumble" \
+    -o "Option1=True"

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#License: MIT License https://raw.github.com/kylelaker/useful_scripts/master/LICENSE
-#Git Repo: https://github.com/kylelaker/useful_scripts/
-
 function sha512(){
   echo "Generating SHA512 sum..."
   sha512sum "$sumdo"

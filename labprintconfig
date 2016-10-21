@@ -13,6 +13,8 @@
 
 # Provides your public IP address as a string
 IP_API_URL="https://api.ipify.org"
+BW_PRINTER="LabPrintBW"
+COLOR_PRINTER="LabPrintColor"
 
 # Adds the provided printer. Name is set to JMU-$1. Location is JMU Labs &
 # Libraries. Driver is a Generic PostScript Driver.
@@ -21,11 +23,14 @@ IP_API_URL="https://api.ipify.org"
 #   Option1=True: A setting (particularly on macOS) to enable duplex
 #                 printing
 function configurePrinter() {
-    echo "==> Adding printer: ${1}"
+    local GENERIC_PS_PPD="drv:///sample.drv/generic.ppd"
+    local PRINTER_LOCATON="JMU Labs & Libraries"
+    local PRINTER_URI="lpd://labremoteprint@labprint.jmu.edu/${1}"
+    echo "    Adding printer: ${1}"
     lpadmin -p JMU-$1 -E\
-        -v lpd://labremoteprint@labprint.jmu.edu/$1\
-        -L "JMU Labs & Libraries"\
-        -m drv:///sample.drv/generic.ppd\
+        -v "${PRINTER_URI}" \
+        -L "${PRINTER_LOCATON}"\
+        -m "${GENERIC_PS_PPD}"\
         -o "Duplex=DuplexNoTumble"\
         -o "Option1=True"
 }
@@ -34,14 +39,15 @@ function configurePrinter() {
 # addresses begin with 134.126
 function checkConnectedToJmu() {
     local IP_ADDRESS=$(curl -s ${IP_API_URL})
-    [[ ${IP_ADDRESS} == 134.126* ]]
+    local JMU_IP_UPPER_16="134.126"
+    [[ "${IP_ADDRESS}" == "${JMU_IP_UPPER_16}"* ]]
     return $?
 }
 
 # Basically just for making it easier to list which printers are being added
 function addPrinters() {
-    configurePrinter LabPrintBW
-    configurePrinter LabPrintColor
+    configurePrinter "$BW_PRINTER"
+    configurePrinter "$COLOR_PRINTER"
 }
 
 # Ensures the current user has the privileges as part of the lpadmin group
@@ -52,7 +58,7 @@ function checkGroup() {
 }
 
 function main() {
-    echo "==> About to configure the JMU LabPrint printers (LabprintBW & LabPrintColor)"
+    echo "==> About to configure the JMU LabPrint printers ($BW_PRINTER & $COLOR_PRINTER)"
     echo "==> Using either of the printers requires being connected to the JMU network,"
     echo "    either the physical network, JMU-Official-Wireless, or SSLVPN"
     echo "==> Checking if connected to the JMU network"
@@ -72,6 +78,7 @@ function main() {
     echo "==> Adding printers..."
     addPrinters
     echo "==> The LabPrint printers have been added."
+    exit 0
 }
 
 # Actually run the script

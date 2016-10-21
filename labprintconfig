@@ -47,7 +47,7 @@ function addPrinters() {
 # Ensures the current user has the privileges as part of the lpadmin group
 # to be adding & configuring printers.
 function checkGroup() {
-    groups $(whoami) | grep -q "\blpadmin\b"
+    groups $(whoami) | grep -q "lpadmin"
     return $?
 }
 

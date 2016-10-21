@@ -1,22 +1,78 @@
 #!/usr/bin/env bash
-echo "==> This script adds the LabPrintBW and LabPrintColor printers."
-echo "==> In order to add and use these printers, you must be connected to the JMU network, either directly or through SSLVPN"
-echo "==> Checking if connected to the JMU network"
-IP_ADDRESS=$(curl -s ipv4bot.whatismyipaddress.com)
-if [[ $IP_ADDRESS != 134.126* ]]; then
-    echo "==> Exiting: Your IP address does not match the expected pattern."
-    exit 1;
-fi
-echo "==> You appear to be connected."
-echo "==> Adding Black & White LabPrint Printer"
-lpadmin -p LabPrintBW -E \
-    -v lpd://labremote@labprint.jmu.edu/LabPrintBW \
-    -m drv:///sample.drv/generic.ppd \
-    -o "Duplex=DuplexNoTumble" \
-    -o "Option1=True"
-echo "==> Adding Color LabPrint Printer"
-lpadmin -p LabPrintColor -E \
-    -v lpd://labremote@labprint.jmu.edu/LabPrintColor \
-    -m drv:///sample.drv/generic.ppd \
-    -o "Duplex=DuplexNoTumble" \
-    -o "Option1=True"
+
+#############################################################################
+# This script adds the JMU LabPrint printers to a computer. This script has #
+# been tested on Linux Mint 18 and macOS Sierra, but should reasonably work #
+# on any *nix-based OS with CUPS. The printers are added as Generic         #
+# PostScript devices.                                                       #
+#                                                                           #
+# Author: Kyle Laker <kyle@kylelaker.com>                                   #
+# Copyright (c) 2016 Kyle Laker                                             #
+# Licensed under the MIT License                                            #
+#############################################################################
+
+# Provides your public IP address as a string
+IP_API_URL="https://api.ipify.org"
+
+# Adds the provided printer. Name is set to JMU-$1. Location is JMU Labs &
+# Libraries. Driver is a Generic PostScript Driver.
+# Custom options:
+#   Duplex=DuplexNoTumble: A setting for enabling duplex printing
+#   Option1=True: A setting (particularly on macOS) to enable duplex
+#                 printing
+function configurePrinter() {
+    echo "==> Adding printer: ${1}"
+    lpadmin -p JMU-$1 -E\
+        -v lpd://labremoteprint@labprint.jmu.edu/$1\
+        -L "JMU Labs & Libraries"\
+        -m drv:///sample.drv/generic.ppd\
+        -o "Duplex=DuplexNoTumble"\
+        -o "Option1=True"
+}
+
+# Ensure the user is somehow connected to the campus network. All JMU IP
+# addresses begin with 134.126
+function checkConnectedToJmu() {
+    local IP_ADDRESS=$(curl -s ${IP_API_URL})
+    [[ ${IP_ADDRESS} == 134.126* ]]
+    return $?
+}
+
+# Basically just for making it easier to list which printers are being added
+function addPrinters() {
+    configurePrinter LabPrintBW
+    configurePrinter LabPrintColor
+}
+
+# Ensures the current user has the privileges as part of the lpadmin group
+# to be adding & configuring printers.
+function checkGroup() {
+    groups $(whoami) | grep -q "\blpadmin\b"
+    return $?
+}
+
+function main() {
+    echo "==> About to configure the JMU LabPrint printers (LabprintBW & LabPrintColor)"
+    echo "==> Using either of the printers requires being connected to the JMU network,"
+    echo "    either the physical network, JMU-Official-Wireless, or SSLVPN"
+    echo "==> Checking if connected to the JMU network"
+    checkConnectedToJmu
+    if [[ $? != 0 ]]; then
+        echo "==> Exiting. You do not appear to be connected to the JMU network."
+        exit 1
+    fi
+    echo "==> You appear to be connected to the JMU network"
+    checkGroup
+    if [[ $? != 0 ]]; then
+        echo "==> You are not a member of the lpadmin group. You may not add printers"
+        echo "==> You may try to run this script again as sudo"
+        exit 2
+    fi
+    echo "==> You appear to have the proper permissions."
+    echo "==> Adding printers..."
+    addPrinters
+    echo "==> The LabPrint printers have been added."
+}
+
+# Actually run the script
+main

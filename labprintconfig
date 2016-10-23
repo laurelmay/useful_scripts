@@ -11,23 +11,34 @@
 # Licensed under the MIT License                                            #
 #############################################################################
 
+#------------------
+# Global variables
+#------------------
 # Provides your public IP address as a string
 IP_API_URL="https://api.ipify.org"
+# Name of the Black & White printer
 BW_PRINTER="LabPrintBW"
+# Name of the color printer
 COLOR_PRINTER="LabPrintColor"
 
+#-----------
+# Functions
+#-----------
+
+#--------------------------------------------------------------------------
 # Adds the provided printer. Name is set to JMU-$1. Location is JMU Labs &
 # Libraries. Driver is a Generic PostScript Driver.
 # Custom options:
 #   Duplex=DuplexNoTumble: A setting for enabling duplex printing
 #   Option1=True: A setting (particularly on macOS) to enable duplex
 #                 printing
+#--------------------------------------------------------------------------
 function configurePrinter() {
     local GENERIC_PS_PPD="drv:///sample.drv/generic.ppd"
     local PRINTER_LOCATON="JMU Labs & Libraries"
     local PRINTER_URI="lpd://labremoteprint@labprint.jmu.edu/${1}"
     echo "    Adding printer: ${1}"
-    lpadmin -p JMU-$1 -E\
+    lpadmin -p JMU-${1} -E\
         -v "${PRINTER_URI}" \
         -L "${PRINTER_LOCATON}"\
         -m "${GENERIC_PS_PPD}"\
@@ -35,8 +46,10 @@ function configurePrinter() {
         -o "Option1=True"
 }
 
+#------------------------------------------------------------------------
 # Ensure the user is somehow connected to the campus network. All JMU IP
 # addresses begin with 134.126
+#------------------------------------------------------------------------
 function checkConnectedToJmu() {
     local IP_ADDRESS=$(curl -s ${IP_API_URL})
     local JMU_IP_UPPER_16="134.126"
@@ -44,21 +57,28 @@ function checkConnectedToJmu() {
     return $?
 }
 
+#----------------------------------------------------------------------------
 # Basically just for making it easier to list which printers are being added
+#----------------------------------------------------------------------------
 function addPrinters() {
-    configurePrinter "$BW_PRINTER"
-    configurePrinter "$COLOR_PRINTER"
+    configurePrinter "${BW_PRINTER}"
+    configurePrinter "${COLOR_PRINTER}"
 }
 
+#--------------------------------------------------------------------------
 # Ensures the current user has the privileges as part of the lpadmin group
 # to be adding & configuring printers.
+#--------------------------------------------------------------------------
 function checkGroup() {
     groups $(whoami) | grep -q "lpadmin"
     return $?
 }
 
+#--------------------------------------------------------------
+# Controls the flow, main logic, and most output of the script
+#--------------------------------------------------------------
 function main() {
-    echo "==> About to configure the JMU LabPrint printers ($BW_PRINTER & $COLOR_PRINTER)"
+    echo "==> About to configure the JMU LabPrint printers (${BW_PRINTER} & ${COLOR_PRINTER})"
     echo "==> Using either of the printers requires being connected to the JMU network,"
     echo "    either the physical network, JMU-Official-Wireless, or SSLVPN"
     echo "==> Checking if connected to the JMU network"
@@ -81,5 +101,7 @@ function main() {
     exit 0
 }
 
+#-------------------------
 # Actually run the script
+#-------------------------
 main

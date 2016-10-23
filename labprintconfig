@@ -70,7 +70,7 @@ function addPrinters() {
 # to be adding & configuring printers.
 #--------------------------------------------------------------------------
 function checkGroup() {
-    groups $(whoami) | grep -q "lpadmin\|root"
+    groups $(whoami) | grep -q "\b_lpadmin\b\|\blpadmin\b\|\broot\b"
     return $?
 }
 

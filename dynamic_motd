@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# This script provides general, useful infomation on login. Should be
+# sourced from /etc/skel/.*shrc. Additionally, to use maintenance motd, the
+# file /etc/motd-maint should be created.
 
 #Define Variables
 PROCCOUNT=`ps -l | wc -l`
@@ -41,9 +45,6 @@ echo -e "
 + Home size = $HOMEOUT
 +++++++++++++: ${Bold}Helpful Information${RCol} :+++++++++++++++
 + Users logged in = ${BCya}`users | tr ' ' '\n' | sort -u | wc -l`${RCol}
-+
-+ Buildbox rules can be found by executing \`buildbox_rules\`
-+ or at http://wiki.teamblueridge.org/wiki/Buildbox_rules
 +++++++++++: ${Bold}Maintenance Information${RCol} :+++++++++++++
 `cat /etc/motd-maint | while read maintline; do echo "+ ${Red}${maintline}${RCol}"; done`
 +++++++++++++++++++++++++++++++++++++++++++++++++++

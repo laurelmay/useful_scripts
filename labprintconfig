@@ -79,22 +79,24 @@ function checkGroup() {
 #--------------------------------------------------------------
 function main() {
     echo "==> About to configure the JMU LabPrint printers (${BW_PRINTER} & ${COLOR_PRINTER})"
-    echo "==> Using either of the printers requires being connected to the JMU network,"
-    echo "    either the physical network, JMU-Official-Wireless, or SSLVPN"
-    echo "==> Checking if connected to the JMU network"
     checkConnectedToJmu
     if [[ $? != 0 ]]; then
-        echo "==> Exiting. You do not appear to be connected to the JMU network."
+        echo "!!! ERROR: Not on network. The printers have not been added."
+        echo "==> In order to add and use the LabPrint printers, you must be"
+        echo "    connected to the JMU network through a wired or wireless"
+        echo "    connection or through the SSLVPN. You do not appear to be"
+        echo "    connected through any of these methods. If you believe this"
+        echo "    is incorrect, double check your settings and try again."
         exit 1
     fi
-    echo "==> You appear to be connected to the JMU network"
     checkGroup
     if [[ $? != 0 ]]; then
-        echo "==> You are not a member of the lpadmin group. You may not add printers"
-        echo "==> You may try to run this script again as sudo"
+        echo "!!! ERROR: Improper permissions. The printers have not been added."
+        echo "==> You do not have the required permissions to make modifications"
+        echo "    to the printers on this computers. Please try running this again"
+        echo "    as an administrator or with \`sudo\`."
         exit 2
     fi
-    echo "==> You appear to have the proper permissions."
     echo "==> Adding printers..."
     addPrinters
     echo "==> The LabPrint printers have been added."

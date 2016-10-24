@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 #############################################################################
 # This script adds the JMU LabPrint printers to a computer. This script has #
@@ -33,7 +33,7 @@ COLOR_PRINTER="LabPrintColor"
 #   Option1=True: A setting (particularly on macOS) to enable duplex
 #                 printing
 #--------------------------------------------------------------------------
-function configurePrinter() {
+configurePrinter() {
     local GENERIC_PS_PPD="drv:///sample.drv/generic.ppd"
     local PRINTER_LOCATON="JMU Labs & Libraries"
     local PRINTER_URI="lpd://labremoteprint@labprint.jmu.edu/${1}"
@@ -50,17 +50,20 @@ function configurePrinter() {
 # Ensure the user is somehow connected to the campus network. All JMU IP
 # addresses begin with 134.126
 #------------------------------------------------------------------------
-function checkConnectedToJmu() {
+checkConnectedToJmu() {
     local IP_ADDRESS=$(curl -s ${IP_API_URL})
     local JMU_IP_UPPER_16="134.126"
-    [[ "${IP_ADDRESS}" == "${JMU_IP_UPPER_16}"* ]]
-    return $?
+    if [ "${IP_ADDRESS#134.126}" != "${IP_ADDRESS}" ]; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 #----------------------------------------------------------------------------
 # Basically just for making it easier to list which printers are being added
 #----------------------------------------------------------------------------
-function addPrinters() {
+addPrinters() {
     configurePrinter "${BW_PRINTER}"
     configurePrinter "${COLOR_PRINTER}"
 }
@@ -69,7 +72,7 @@ function addPrinters() {
 # Ensures the current user has the privileges as part of the lpadmin group
 # to be adding & configuring printers.
 #--------------------------------------------------------------------------
-function checkGroup() {
+checkGroup() {
     groups $(whoami) | grep -q "\b_lpadmin\b\|\blpadmin\b\|\broot\b"
     return $?
 }
@@ -77,10 +80,10 @@ function checkGroup() {
 #--------------------------------------------------------------
 # Controls the flow, main logic, and most output of the script
 #--------------------------------------------------------------
-function main() {
+main() {
     echo "==> About to configure the JMU LabPrint printers (${BW_PRINTER} & ${COLOR_PRINTER})"
     checkConnectedToJmu
-    if [[ $? != 0 ]]; then
+    if [ $? != 0 ]; then
         echo "!!! ERROR: Not on network. The printers have not been added."
         echo "==> In order to add and use the LabPrint printers, you must be"
         echo "    connected to the JMU network through a wired or wireless"
@@ -90,7 +93,7 @@ function main() {
         exit 1
     fi
     checkGroup
-    if [[ $? != 0 ]]; then
+    if [ $? != 0 ]; then
         echo "!!! ERROR: Improper permissions. The printers have not been added."
         echo "==> You do not have the required permissions to make modifications"
         echo "    to the printers on this computers. Please try running this again"

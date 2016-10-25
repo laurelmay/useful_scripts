@@ -52,12 +52,7 @@ configurePrinter() {
 #------------------------------------------------------------------------
 checkConnectedToJmu() {
     local IP_ADDRESS=$(curl -s ${IP_API_URL})
-    local JMU_IP_UPPER_16="134.126"
-    if [ "${IP_ADDRESS#134.126}" != "${IP_ADDRESS}" ]; then
-		return 0
-	else
-		return 1
-	fi
+    return $([ "${IP_ADDRESS#134.126}" != "${IP_ADDRESS}" ])
 }
 
 #----------------------------------------------------------------------------
@@ -73,8 +68,7 @@ addPrinters() {
 # to be adding & configuring printers.
 #--------------------------------------------------------------------------
 checkGroup() {
-    groups $(whoami) | grep -q "\b_lpadmin\b\|\blpadmin\b\|\broot\b"
-    return $?
+    return `groups $(whoami) | grep -q "\b_lpadmin\b\|\blpadmin\b\|\broot\b"`
 }
 
 #--------------------------------------------------------------
@@ -82,8 +76,7 @@ checkGroup() {
 #--------------------------------------------------------------
 main() {
     echo "==> About to configure the JMU LabPrint printers (${BW_PRINTER} & ${COLOR_PRINTER})"
-    checkConnectedToJmu
-    if [ $? != 0 ]; then
+    if ! $(checkConnectedToJmu); then
         echo "!!! ERROR: Not on network. The printers have not been added."
         echo "==> In order to add and use the LabPrint printers, you must be"
         echo "    connected to the JMU network through a wired or wireless"
@@ -92,8 +85,7 @@ main() {
         echo "    is incorrect, double check your settings and try again."
         exit 1
     fi
-    checkGroup
-    if [ $? != 0 ]; then
+    if ! $(checkGroup); then
         echo "!!! ERROR: Improper permissions. The printers have not been added."
         echo "==> You do not have the required permissions to make modifications"
         echo "    to the printers on this computers. Please try running this again"

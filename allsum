@@ -1,56 +1,46 @@
 #!/bin/bash
 
 function sha512(){
-  echo "Generating SHA512 sum..."
-  sha512sum "$sumdo"
+    sha512sum "$file"
 }
 function sha256(){
-  echo "Generating SHA256 sum..."
-  sha256sum "$sumdo"
+    sha256sum "$file"
 }
 function sha1(){
-  echo "Generating SHA1 sum..."
-  sha1sum "$sumdo"
+    sha1sum "$file"
 }
 function md5(){
-  echo "Generating MD5 sum..."
-  md5sum "$sumdo"
+    md5sum "$file"
 }
 
-file=$1
-if [ -z "$file" ]
-then
-  echo "Filename not provided."
-  read -p "What would you like to find the sum for? " file
-  for sumdo in $file
-  do
-    echo ""
-    echo "################################################################################"
-    echo "Sums for $sumdo"
-    md5
-    sha1
-    sha256
-    sha512
-    echo "################################################################################"
-    echo ""
-  done
-else
- until [ -z "$1" ]
-  do
-    file=$1
-    for sumdo in $file
+function print_sums() {
+    for file in $path
     do
-      echo ""
-      echo "################################################################################"
-      echo "Sums for $sumdo"
-      md5
-      sha1
-      sha256
-      sha512
-      echo "################################################################################"
-      echo ""
+        echo ""
+        echo "==> Sums for \"$file\""
+        echo "==> MD5"
+        md5
+        echo "==> SHA1"
+        sha1
+        echo "==> SHA256"
+        sha256
+        echo "==> SHA512"
+        sha512
+        echo ""
     done
-    shift
-  done
+}
+path=$1
+if [ -z "$path" ]
+then
+    echo "Path not provided."
+    read -p "What would you like to find the sum for? " path
+    print_sums
+else
+    until [ -z "$1" ]
+    do
+        path=$1
+        print_sums
+        shift
+    done
 fi
 exit

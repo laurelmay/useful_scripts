@@ -33,7 +33,7 @@ COLOR_PRINTER="LabPrintColor"
 #   Option1=True: A setting (particularly on macOS) to enable duplex
 #                 printing
 #--------------------------------------------------------------------------
-configurePrinter() {
+configure_printer() {
     local GENERIC_PS_PPD="drv:///sample.drv/generic.ppd"
     local PRINTER_LOCATON="JMU Labs & Libraries"
     local PRINTER_URI="lpd://labremoteprint@labprint.jmu.edu/${1}"
@@ -50,7 +50,7 @@ configurePrinter() {
 # Ensure the user is somehow connected to the campus network. All JMU IP
 # addresses begin with 134.126
 #------------------------------------------------------------------------
-checkConnectedToJmu() {
+check_connected_to_jmu() {
     local IP_ADDRESS=$(curl -s ${IP_API_URL})
     return $([ "${IP_ADDRESS#134.126}" != "${IP_ADDRESS}" ])
 }
@@ -58,16 +58,16 @@ checkConnectedToJmu() {
 #----------------------------------------------------------------------------
 # Basically just for making it easier to list which printers are being added
 #----------------------------------------------------------------------------
-addPrinters() {
-    configurePrinter "${BW_PRINTER}"
-    configurePrinter "${COLOR_PRINTER}"
+add_printers() {
+    configure_printer "${BW_PRINTER}"
+    configure_printer "${COLOR_PRINTER}"
 }
 
 #--------------------------------------------------------------------------
 # Ensures the current user has the privileges as part of the lpadmin group
 # to be adding & configuring printers.
 #--------------------------------------------------------------------------
-checkGroup() {
+check_group() {
     return `groups $(whoami) | grep -q "\b_lpadmin\b\|\blpadmin\b\|\broot\b"`
 }
 
@@ -76,7 +76,7 @@ checkGroup() {
 #--------------------------------------------------------------
 main() {
     echo "==> About to configure the JMU LabPrint printers (${BW_PRINTER} & ${COLOR_PRINTER})"
-    if ! $(checkConnectedToJmu); then
+    if ! $(check_connected_to_jmu); then
         echo "!!! ERROR: Not on network. The printers have not been added."
         echo "==> In order to add and use the LabPrint printers, you must be"
         echo "    connected to the JMU network through a wired or wireless"
@@ -85,7 +85,7 @@ main() {
         echo "    is incorrect, double check your settings and try again."
         exit 1
     fi
-    if ! $(checkGroup); then
+    if ! $(check_group); then
         echo "!!! ERROR: Improper permissions. The printers have not been added."
         echo "==> You do not have the required permissions to make modifications"
         echo "    to the printers on this computers. Please try running this again"
@@ -93,7 +93,7 @@ main() {
         exit 2
     fi
     echo "==> Adding printers..."
-    addPrinters
+    add_printers
     echo "==> The LabPrint printers have been added."
     exit 0
 }

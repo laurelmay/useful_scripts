@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
 #############################################################################
 # This script adds the JMU LabPrint printers to a computer. This script has #

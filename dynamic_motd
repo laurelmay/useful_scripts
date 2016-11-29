@@ -8,8 +8,6 @@
 PROCCOUNT=`ps -l | wc -l`
 PROCCOUNT=`expr $PROCCOUNT - 4`
 SESSIONS=$(who | grep $USER | wc -l)
-HOMESIZE=$(cat $HOME/.size | cut -f1); HOMESIZE=$(echo $HOMESIZE | sed 's/[GM]//g')
-HOMEBYTE=$(cat $HOME/.size | cut -f1); HOMEBYTE=$(echo $HOMEBYTE | sed 's/[1234567890]//g')
 
 #Text formatting
 Bold='\e[1m'
@@ -26,13 +24,12 @@ Whi='\e[0;37m';     BWhi='\e[1;37m';    UWhi='\e[4;37m';    IWhi='\e[0;97m';    
 
 #Format text based on values
 [[ $SESSIONS -gt 1 ]] && SESSIONS="${Red}${SESSIONS}${RCol}" || SESSIONS="${Gre}${SESSIONS}${RCol}"
-[[ ${HOMEBYTE} = "G" ]] && [[ $HOMESIZE -gt 100 ]] && HOMEOUT="${Red}${HOMESIZE}${HOMEBYTE}${RCol}" || HOMEOUT="${Gre}${HOMESIZE}${HOMEBYTE}${RCol}"
 
 #Begin output
 echo -e "
 +++++++++++++++++: ${Bold}System Data${RCol} :+++++++++++++++++++
 +  Hostname = ${BCya}`hostname`${RCol}
-+   Address = ${Bold}`ifconfig enp0s25 | grep -m1 inet | sed 's/^ *//g' | cut -d\  -f 2`${RCol}
++   Address = ${Bold}`ifconfig wlp3s0 | grep -m1 inet | sed 's/^ *//g' | cut -d\  -f 2 | sed 's/addr://g'`${RCol}
 +    Kernel = `uname -r`
 +    Uptime = `uptime -p`
 +       CPU =`cat /proc/cpuinfo | grep -m1 "model name" | cut -d: -f2 | sed 's/           / /g'` X `nproc`
@@ -42,7 +39,6 @@ echo -e "
 +    Groups = `groups`
 +  Sessions = $SESSIONS of 1
 + Processes = $PROCCOUNT
-+ Home size = $HOMEOUT
 +++++++++++++: ${Bold}Helpful Information${RCol} :+++++++++++++++
 + Users logged in = ${BCya}`users | tr ' ' '\n' | sort -u | wc -l`${RCol}
 +++++++++++: ${Bold}Maintenance Information${RCol} :+++++++++++++

@@ -29,18 +29,21 @@ function print_sums() {
         echo ""
     done
 }
-path=$1
-if [ -z "$path" ]
-then
-    echo "Path not provided."
-    read -p "What would you like to find the sum for? " path
-    print_sums
-else
-    until [ -z "$1" ]
-    do
-        path=$1
-        print_sums
-        shift
-    done
-fi
-exit
+
+function main() {
+    path=$1
+    if [ -z "$path" ]
+    then
+        read -p "What would you like to find the sum for? " path
+	print_sums
+    else
+        until [ -z "$1" ]
+        do
+            path=$1
+            print_sums
+            shift
+        done
+    fi
+}
+
+main

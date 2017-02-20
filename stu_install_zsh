@@ -134,7 +134,7 @@ cat <<EOF
 
     Make sure to set MANPATH=\$HOME/.local/share/man if you want the zsh
     documentation.
-    
+
     github.com/kylelaker/dotfiles/ may be of use if you want a starter
     config for zsh as well as other things.
 
@@ -154,19 +154,32 @@ EOF
 #---
 main() {
     echo "==> Installing ZSH ${ZSH_VERSION}"
-    create_install_directory
-    cd ${INSTALL_DIRECTORY}
+
+    if ! create_install_directory; then
+        echo "!!! There was a problem creating the install directory"
+        return
+    fi
+
+    if ! cd "${INSTALL_DIRECTORY}"; then
+        echo "!!! Unable to enter install directory"
+        return
+    fi
+
     if ! download_source; then
         echo "!!! Error downloading source"
         return
     fi
-    cd "zsh-${ZSH_VERSION}"
+
+    if ! cd "zsh-${ZSH_VERSION}"; then
+        echo "!!! Unable to enter zsh source directory"
+        return
+    fi
 
     if ! configure; then
         echo "!!! Error while configuring"
         return
     fi
-    
+
     if ! make_zsh; then
         echo "!!! Error while making zsh"
         return
@@ -183,20 +196,25 @@ main() {
         echo "    Continuing anyway..."
     fi
 
-    cd ..
+    if ! cd "${INSTALL_DIRECTORY}"; then
+        echo "!!! Unable to enter install directory"
+        return
+    fi
 
     if ! download_oh_my_zsh; then
         echo "!!! Error downloading oh-my-zsh"
         return
     fi
 
-
     if ! modify_oh_my_zsh; then
         echo "!!! Could not make necessary modifications to oh-my-zsh install script"
         return
     fi
 
-    chmod +x ./${OH_MY_ZSH_SCRIPT_NAME}
+    if ! chmod +x "./${OH_MY_ZSH_SCRIPT_NAME}"; then
+        echo "!!! Error making Oh My Zsh install script executable"
+        return
+    fi
 
     if ! install_oh_my_zsh; then
         echo "==> There may have been some errors during the oh-my-zsh install

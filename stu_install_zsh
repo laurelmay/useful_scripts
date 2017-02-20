@@ -17,35 +17,60 @@ ZSH_VERSION="5.3.1"
 ZSH_DOWNLOAD_URL="http://sourceforge.net/projects/zsh/files/zsh/${ZSH_VERSION}/zsh-${ZSH_VERSION}.tar.xz"
 OH_MY_ZSH_URL="https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh"
 OH_MY_ZSH_SCRIPT_NAME="oh-my-zsh-install.sh"
+INSTALL_DIRECTORY="${HOME}/zsh_install"
 
-echo "==> Installing ZSH ${ZSH_VERSION}"
-echo "==> Creating zsh install directory"
-mkdir -p $HOME/zsh_install && cd $_
-echo "==> Downloading zsh sources"
-wget ${ZSH_DOWNLOAD_URL}
-tar xf "zsh-${ZSH_VERSION}.tar.xz"
-cd "zsh-${ZSH_VERSION}"
-echo "==> Running zsh preconfig"
-./Util/preconfig
-echo "==> Configuring zsh with prefix set to ${HOME}/.local"
-./configure --prefix=${HOME}/.local
-echo "==> Making zsh"
-make -j4
-echo "==> Running make check"
-make check
-echo "==> Installing zsh"
-make install
-echo "==> Using roundabout way of using zsh as login shell"
-echo 'exec ${HOME}/.local/bin/zsh -l' > $HOME/.bashrc
-echo "==> Downloading oh-my-zsh install script"
-cd ..
-curl -l "${OH_MY_ZSH_URL}" -o "${OH_MY_ZSH_SCRIPT_NAME}"
-sed -i"" -e '/CHECK_ZSH_INSTALLED=/,+4 s/^/#/' ${OH_MY_ZSH_SCRIPT_NAME}
-chmod +x ${OH_MY_ZSH_SCRIPT_NAME}
-echo "==> Executing oh-my-zsh install script. At the end if you get an
+download_source() {
+    echo "==> Downloading zsh sources"
+    wget ${ZSH_DOWNLOAD_URL} && \
+    echo "==> Untarring sources" && \
+    tar xf "zsh-${ZSH_VERSION}.tar.xz"
+}
+
+configure() {
+    echo "==> Running zsh preconfigure"
+    ./Util/preconfig && \
+    echo "==> Configuring zsh with prefix set to ${HOME}/.local" && \
+    ./configure --prefix="${HOME}/.local"
+}
+
+make_zsh() {
+    echo "==> Making zsh"
+    make -j4 && \
+    echo "==> Running make check" && \
+    make check
+}
+
+install() {
+    echo "Installing zsh"
+    make install
+}
+
+modify_bashrc() {
+    echo "==> Using roundabout way of using zsh as login shell"
+    echo 'exec ${HOME}/.local/bin/zsh -l' > $HOME/.bashrc
+}
+
+download_oh_my_zsh() {
+    echo "==> Downloading oh-my-zsh install script"
+    curl -l "${OH_MY_ZSH_URL}" -o "${OH_MY_ZSH_SCRIPT_NAME}"
+}
+
+modify_oh_my_zsh() {
+    sed -i"" -e '/CHECK_ZSH_INSTALLED=/,+4 s/^/#/' ${OH_MY_ZSH_SCRIPT_NAME}
+}
+
+install_oh_my_zsh() {
+    echo "==> Executing oh-my-zsh install script. At the end if you get an
     error about chsh failing, that's okay"
-./${OH_MY_ZSH_SCRIPT_NAME}
+    ./${OH_MY_ZSH_SCRIPT_NAME}
+}
 
+create_install_directory() {
+    echo "==> Creating install directory"
+    mkdir -p "${HOME}/zsh_install"
+}
+
+install_complete_message() {
 cat <<EOF
 ==> Installation complete
 
@@ -54,4 +79,65 @@ cat <<EOF
     
     github.com/kylelaker/dotfiles/ may be of use if you want a starter
     config for zsh as well as other things.
+
+    If you sign out then sign back in or simply start a new terminal
+    session, you should have zsh as your shell.
 EOF
+}
+
+main() {
+    echo "==> Installing ZSH ${ZSH_VERSION}"
+    create_install_directory
+    cd ${INSTALL_DIRECTORY}
+    if ! download_source; then
+        echo "!!! Error downloading source"
+        return
+    fi
+    cd "zsh-${ZSH_VERSION}"
+
+    if ! configure; then
+        echo "!!! Error while configuring"
+        return
+    fi
+    
+    if ! make_zsh; then
+        echo "!!! Error while making zsh"
+        return
+    fi
+
+    if ! install; then
+        echo "!!! Install failed"
+        return
+    fi
+
+    if ! modify_bashrc; then
+        echo "!!! Unable to modify bashrc"
+        echo "    zsh will not be your default shell."
+        echo "    Continuing anyway..."
+    fi
+
+    cd ..
+
+    if ! download_oh_my_zsh; then
+        echo "!!! Error downloading oh-my-zsh"
+        return
+    fi
+
+
+    if ! modify_oh_my_zsh; then
+        echo "!!! Could not make necessary modifications to oh-my-zsh install script"
+        return
+    fi
+
+    chmod +x ./${OH_MY_ZSH_SCRIPT_NAME}
+
+    if ! install_oh_my_zsh; then
+        echo "==> There may have been some errors during the oh-my-zsh install
+    if these were about chsh, you are fine. If there are anything else, oh-my-zsh
+    may not have installed correctly."
+    fi
+
+    install_complete_message
+}
+
+main

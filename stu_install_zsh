@@ -1,31 +1,41 @@
-#!/usr/env bash
+#!/usr/bin/env bash
 
-echo "==> Installing ZSH"i
-echo "   ==> Creating zsh install directory"
+ZSH_VERSION="5.3.1"
+ZSH_DOWNLOAD_URL="http://sourceforge.net/projects/zsh/files/zsh/${ZSH_VERSION}/zsh-${ZSH_VERSION}.tar.xz"
+OH_MY_ZSH_URL="https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh"
+OH_MY_ZSH_SCRIPT_NAME="oh-my-zsh-install.sh"
+
+echo "==> Installing ZSH ${ZSH_VERSION}"
+echo "==> Creating zsh install directory"
 mkdir -p $HOME/zsh_install && cd $_
-echo "   ==> Cloning zsh sources"
-git clone git://git.code.sf.net/p/zsh/code zsh-code
-cd zsh-code
-echo "   ==> Running zsh preconfig"
+echo "==> Downloading zsh sources"
+wget ${ZSH_DOWNLOAD_URL}
+tar xf "zsh-${ZSH_VERSION}.tar.xz"
+cd "zsh-${ZSH_VERSION}"
+echo "==> Running zsh preconfig"
 ./Util/preconfig
-echo "   ==> Configuring zsh with prefix set to ${HOME}/.local"
+echo "==> Configuring zsh with prefix set to ${HOME}/.local"
 ./configure --prefix=${HOME}/.local
-echo "   ==> Making zsh"
+echo "==> Making zsh"
 make -j4
-echo "   ==> Running make check"
+echo "==> Running make check"
 make check
-echo "   ==> Installing zsh"
+echo "==> Installing zsh"
 make install
-echo "   ==> Using roundabout way of using zsh as login shell"
+echo "==> Using roundabout way of using zsh as login shell"
 echo 'exec ${HOME}/.local/bin/zsh -l' > $HOME/.bashrc
+echo "==> Downloading oh-my-zsh install script"
+cd ..
+curl -l "${OH_MY_ZSH_URL}" -o "${OH_MY_ZSH_SCRIPT_NAME}"
+sed -i"" -e '/CHECK_ZSH_INSTALLED=/,+4 s/^/#/' ${OH_MY_ZSH_SCRIPT_NAME}
+chmod +x ${OH_MY_ZSH_SCRIPT_NAME}
+echo "==> Executing oh-my-zsh install script. At the end if you get an
+    error about chsh failing, that's okay"
+./${OH_MY_ZSH_SCRIPT_NAME}
+
 cat <<EOF
    ==> Installation complete
-       While zsh is completely installed, oh-my-zsh is not set up.
-       Pull the oh-my-zsh install script
-       (https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)
-       Save it as a local file and remove the lines that check for zsh
-       in /etc/shells (it won't be). Then run the script.
-    
+
        Make sure to set MANPATH=\$HOME/.local/share/man if you want the zsh
        documentation.
     

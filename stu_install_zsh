@@ -1,4 +1,17 @@
 #!/usr/bin/env bash
+##########################################################################
+# Downloads & compiles the source for zsh since stu doesn't have it      #
+# installed or include it in /etc/shells. This will install it to        #
+# $HOME/.local/bin. manpages will go in $HOME/.local/share/man. Using    #
+# $HOME/.local as the prefix complies with freedesktop hierarchy. Since  #
+# chsh can't be used for shells not in /etc/shells, .bashrc is modified  #
+# to exec zsh as a login shell.                                          #
+#                                                                        #
+# Author: Kyle Laker <kyle@laker.email>                                  #
+# Copyright (c) 2017 Kyle Laker                                          #
+# Licensed under the MIT License                                         #
+##########################################################################
+
 
 ZSH_VERSION="5.3.1"
 ZSH_DOWNLOAD_URL="http://sourceforge.net/projects/zsh/files/zsh/${ZSH_VERSION}/zsh-${ZSH_VERSION}.tar.xz"

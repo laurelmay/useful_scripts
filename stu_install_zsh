@@ -67,7 +67,7 @@ make_zsh() {
 # specified in $CONFIG_PREFIX_PATH.
 #---
 install() {
-    echo "Installing zsh"
+    echo "==> Installing zsh"
     make install
 }
 
@@ -89,7 +89,7 @@ modify_bashrc() {
 # specified by OH_MY_ZSH_SCRIPT_NAME.
 #---
 download_oh_my_zsh() {
-    echo "==> Downloading oh-my-zsh install script"
+    echo "==> Downloading Oh My Zsh install script"
     curl -l "${OH_MY_ZSH_URL}" -o "${OH_MY_ZSH_SCRIPT_NAME}"
 }
 
@@ -110,8 +110,8 @@ modify_oh_my_zsh() {
 # this.
 #---
 install_oh_my_zsh() {
-    echo "==> Executing oh-my-zsh install script. At the end if you get an
-    error about chsh failing, that's okay"
+    echo "==> Executing Oh My Zsh install script. At the end if you get an"
+    echo "    error about chsh failing, that's okay"
     ./${OH_MY_ZSH_SCRIPT_NAME}
 }
 
@@ -144,6 +144,13 @@ EOF
 }
 
 #---
+# Directs error output to stderr.
+#---
+err() {
+    echo "!!! $@" >&2
+}
+
+#---
 # Handles the main logic of the script. Essentially runs all the
 # functions in the script with a check to see if they worked or not. If
 # they failed, the function returns. In most cases, execution should not
@@ -156,70 +163,72 @@ main() {
     echo "==> Installing ZSH ${ZSH_VERSION}"
 
     if ! create_install_directory; then
-        echo "!!! There was a problem creating the install directory"
+        err "There was a problem creating the install directory"
         return
     fi
 
     if ! cd "${INSTALL_DIRECTORY}"; then
-        echo "!!! Unable to enter install directory"
+        err "Unable to enter install directory"
         return
     fi
 
     if ! download_source; then
-        echo "!!! Error downloading source"
+        err "Error downloading source"
         return
     fi
 
     if ! cd "zsh-${ZSH_VERSION}"; then
-        echo "!!! Unable to enter zsh source directory"
+        err "Unable to enter zsh source directory"
         return
     fi
 
     if ! configure; then
-        echo "!!! Error while configuring"
+        err "Error while configuring"
         return
     fi
 
     if ! make_zsh; then
-        echo "!!! Error while making zsh"
+        err "Error while making zsh"
         return
     fi
 
     if ! install; then
-        echo "!!! Install failed"
+        err "Install failed"
         return
     fi
 
     if ! modify_bashrc; then
-        echo "!!! Unable to modify bashrc"
-        echo "    zsh will not be your default shell."
-        echo "    Continuing anyway..."
+        err "Unable to modify bashrc"
+        echo "    zsh will not be your default shell." >&2
+        echo "    Continuing anyway..." >&2
     fi
 
     if ! cd "${INSTALL_DIRECTORY}"; then
-        echo "!!! Unable to enter install directory"
+        err "Unable to enter install directory"
         return
     fi
 
+    #TODO: Consider adding a propt for Oh My Zsh install
+
     if ! download_oh_my_zsh; then
-        echo "!!! Error downloading oh-my-zsh"
+        err "Error downloading Oh My Zsh"
         return
     fi
 
     if ! modify_oh_my_zsh; then
-        echo "!!! Could not make necessary modifications to oh-my-zsh install script"
+        err "Could not make necessary modifications to Oh My Zsh install script"
         return
     fi
 
     if ! chmod +x "./${OH_MY_ZSH_SCRIPT_NAME}"; then
-        echo "!!! Error making Oh My Zsh install script executable"
+        err "Error making Oh My Zsh install script executable"
         return
     fi
 
     if ! install_oh_my_zsh; then
-        echo "==> There may have been some errors during the oh-my-zsh install
-    if these were about chsh, you are fine. If there are anything else, oh-my-zsh
-    may not have installed correctly."
+        echo "==> There may have been some errors during the oh-my-zsh install"
+        echo "    if these were about chsh, you are fine. If there are anything"
+        echo "    else, Oh My Zsh may not have installed correctly."
     fi
 
     install_complete_message

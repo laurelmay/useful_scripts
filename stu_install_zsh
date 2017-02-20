@@ -23,7 +23,7 @@ cat <<EOF
        While zsh is completely installed, oh-my-zsh is not set up.
        Pull the oh-my-zsh install script
        (https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)
-       Save this as a local file and remove the lines that check for zsh
+       Save it as a local file and remove the lines that check for zsh
        in /etc/shells (it won't be). Then run the script.
     
        Make sure to set MANPATH=\$HOME/.local/share/man if you want the zsh

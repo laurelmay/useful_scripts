@@ -117,11 +117,11 @@ install_oh_my_zsh() {
 
 #---
 # Creates the install directory, by default $HOME/zsh_install. This is
-# not a global variable.
+# set by INSTALL_DIRECTORY global variable.
 #---
 create_install_directory() {
     echo "==> Creating install directory"
-    mkdir -p "${HOME}/zsh_install"
+    mkdir -p "${INSTALL_DIRECTORY}"
 }
 
 #---

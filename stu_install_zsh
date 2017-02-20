@@ -1,0 +1,34 @@
+#!/usr/env bash
+
+echo "==> Installing ZSH"i
+echo "   ==> Creating zsh install directory"
+mkdir -p $HOME/zsh_install && cd $_
+echo "   ==> Cloning zsh sources"
+git clone git://git.code.sf.net/p/zsh/code zsh-code
+cd zsh-code
+echo "   ==> Running zsh preconfig"
+./Util/preconfig
+echo "   ==> Configuring zsh with prefix set to ${HOME}/.local"
+./configure --prefix=${HOME}/.local
+echo "   ==> Making zsh"
+make -j4
+echo "   ==> Running make check"
+make check
+echo "   ==> Installing zsh"
+make install
+echo "   ==> Using roundabout way of using zsh as login shell"
+echo 'exec ${HOME}/.local/bin/zsh -l' > $HOME/.bashrc
+cat <<EOF
+   ==> Installation complete
+       While zsh is completely installed, oh-my-zsh is not set up.
+       Pull the oh-my-zsh install script
+       (https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)
+       Save this as a local file and remove the lines that check for zsh
+       in /etc/shells (it won't be). Then run the script.
+    
+       Make sure to set MANPATH=\$HOME/.local/share/man if you want the zsh
+       documentation.
+    
+       github.com/kylelaker/dotfiles/ may be of use if you want a starter
+       config for zsh as well as other things.
+EOF

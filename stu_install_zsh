@@ -34,11 +34,11 @@ echo "==> Executing oh-my-zsh install script. At the end if you get an
 ./${OH_MY_ZSH_SCRIPT_NAME}
 
 cat <<EOF
-   ==> Installation complete
+==> Installation complete
 
-       Make sure to set MANPATH=\$HOME/.local/share/man if you want the zsh
-       documentation.
+    Make sure to set MANPATH=\$HOME/.local/share/man if you want the zsh
+    documentation.
     
-       github.com/kylelaker/dotfiles/ may be of use if you want a starter
-       config for zsh as well as other things.
+    github.com/kylelaker/dotfiles/ may be of use if you want a starter
+    config for zsh as well as other things.
 EOF

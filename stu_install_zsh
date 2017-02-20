@@ -47,7 +47,7 @@ download_source() {
 configure() {
     echo "==> Running zsh preconfigure"
     ./Util/preconfig && \
-    echo "==> Configuring zsh with prefix set to ${HOME}/.local" && \
+    echo "==> Configuring zsh with prefix set to ${CONFIG_PREFIX_PATH}" && \
     ./configure --prefix="${CONFIG_PREFIX_PATH}"
 }
 
@@ -208,7 +208,7 @@ main() {
         return
     fi
 
-    #TODO: Consider adding a propt for Oh My Zsh install
+    #TODO: Consider adding a prompt for Oh My Zsh install
 
     if ! download_oh_my_zsh; then
         err "Error downloading Oh My Zsh"

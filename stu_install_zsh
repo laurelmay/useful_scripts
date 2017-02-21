@@ -77,10 +77,19 @@ install() {
 # the new config.
 #---
 modify_bashrc() {
-    echo "==> Backing up ~/.bashrc to ~/.bashrc.bak"
-    mv "${HOME}/.bashrc" "${HOME}/.bashrc.bak" && \
-    echo "==> Using roundabout way of using zsh as login shell" && \
-    echo 'exec ${HOME}/.local/bin/zsh -l' > "${HOME}/.bashrc"
+    if [ ! -f "${HOME}/.bashrc" ]; then
+        echo "==> No .bashrc to back up"
+    else
+        echo "==> Backing up ~/.bashrc to ~/.bashrc.bak"
+        mv "${HOME}/.bashrc" "${HOME}/.bashrc.bak"
+    fi
+    echo "==> Using roundabout way of using zsh as login shell"
+cat <<'EOF' > "${HOME}/.bashrc"
+if [ -z "$PS1" ]; then
+    return
+fi
+exec ${HOME}/.local/bin/zsh -l
+EOF
 }
 
 

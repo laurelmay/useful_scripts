@@ -1,1 +1,4 @@
+#!/bin/sh
+# Open home on stu in Nemo
+
 nemo ssh://lakerka@stu.cs.jmu.edu/cs/home/stu/lakerka

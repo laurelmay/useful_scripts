@@ -15,12 +15,12 @@
 #-----------------
 # Global variables
 #-----------------
-ZSH_VERSION="5.3.1"
-ZSH_DOWNLOAD_URL="http://sourceforge.net/projects/zsh/files/zsh/${ZSH_VERSION}/zsh-${ZSH_VERSION}.tar.xz"
-OH_MY_ZSH_URL="https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh"
-OH_MY_ZSH_SCRIPT_NAME="oh-my-zsh-install.sh"
-INSTALL_DIRECTORY="${HOME}/zsh_install"
-CONFIG_PREFIX_PATH="${HOME}/.local"
+zsh_version="5.3.1"
+zsh_download_url="http://sourceforge.net/projects/zsh/files/zsh/${zsh_version}/zsh-${zsh_version}.tar.xz"
+oh_my_zsh_url="https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh"
+oh_my_script_name="oh-my-zsh-install.sh"
+install_directory="${HOME}/zsh_install"
+config_prefix_path="${HOME}/.local"
 
 #----------
 # Functions
@@ -34,9 +34,9 @@ CONFIG_PREFIX_PATH="${HOME}/.local"
 #---
 download_source() {
     echo "==> Downloading zsh sources"
-    wget ${ZSH_DOWNLOAD_URL} && \
+    wget ${zsh_download_url} && \
     echo "==> Untarring sources" && \
-    tar xf "zsh-${ZSH_VERSION}.tar.xz"
+    tar xf "zsh-${zsh_version}.tar.xz"
 }
 
 #---
@@ -47,8 +47,8 @@ download_source() {
 configure() {
     echo "==> Running zsh preconfigure"
     ./Util/preconfig && \
-    echo "==> Configuring zsh with prefix set to ${CONFIG_PREFIX_PATH}" && \
-    ./configure --prefix="${CONFIG_PREFIX_PATH}"
+    echo "==> Configuring zsh with prefix set to ${config_prefix_path}" && \
+    ./configure --prefix="${config_prefix_path}"
 }
 
 #---
@@ -64,7 +64,7 @@ make_zsh() {
 
 #---
 # Runs make install, which will place everything in the directory
-# specified in $CONFIG_PREFIX_PATH.
+# specified in $config_prefix_path.
 #---
 install() {
     echo "==> Installing zsh"
@@ -95,11 +95,11 @@ EOF
 
 #---
 # Downloads the oh-my-zsh install script and places it in the location
-# specified by OH_MY_ZSH_SCRIPT_NAME.
+# specified by oh_my_script_name.
 #---
 download_oh_my_zsh() {
     echo "==> Downloading Oh My Zsh install script"
-    curl -l "${OH_MY_ZSH_URL}" -o "${OH_MY_ZSH_SCRIPT_NAME}"
+    curl -l "${oh_my_zsh_url}" -o "${oh_my_script_name}"
 }
 
 #---
@@ -109,7 +109,7 @@ download_oh_my_zsh() {
 # to modify /etc/shells.
 #---
 modify_oh_my_zsh() {
-    sed -i"" -e '/CHECK_ZSH_INSTALLED=/,+4 s/^/#/' ${OH_MY_ZSH_SCRIPT_NAME}
+    sed -i"" -e '/CHECK_ZSH_INSTALLED=/,+4 s/^/#/' ${oh_my_script_name}
 }
 
 #---
@@ -121,16 +121,16 @@ modify_oh_my_zsh() {
 install_oh_my_zsh() {
     echo "==> Executing Oh My Zsh install script. At the end if you get an"
     echo "    error about chsh failing, that's okay"
-    ./${OH_MY_ZSH_SCRIPT_NAME}
+    ./${oh_my_script_name}
 }
 
 #---
 # Creates the install directory, by default $HOME/zsh_install. This is
-# set by INSTALL_DIRECTORY global variable.
+# set by install_directory global variable.
 #---
 create_install_directory() {
     echo "==> Creating install directory"
-    mkdir -p "${INSTALL_DIRECTORY}"
+    mkdir -p "${install_directory}"
 }
 
 #---
@@ -169,14 +169,14 @@ err() {
 # between some steps.
 #---
 main() {
-    echo "==> Installing ZSH ${ZSH_VERSION}"
+    echo "==> Installing ZSH ${zsh_version}"
 
     if ! create_install_directory; then
         err "There was a problem creating the install directory"
         return
     fi
 
-    if ! cd "${INSTALL_DIRECTORY}"; then
+    if ! cd "${install_directory}"; then
         err "Unable to enter install directory"
         return
     fi
@@ -186,7 +186,7 @@ main() {
         return
     fi
 
-    if ! cd "zsh-${ZSH_VERSION}"; then
+    if ! cd "zsh-${zsh_version}"; then
         err "Unable to enter zsh source directory"
         return
     fi
@@ -212,7 +212,7 @@ main() {
         echo "    Continuing anyway..." >&2
     fi
 
-    if ! cd "${INSTALL_DIRECTORY}"; then
+    if ! cd "${install_directory}"; then
         err "Unable to enter install directory"
         return
     fi
@@ -229,7 +229,7 @@ main() {
         return
     fi
 
-    if ! chmod +x "./${OH_MY_ZSH_SCRIPT_NAME}"; then
+    if ! chmod +x "./${oh_my_script_name}"; then
         err "Error making Oh My Zsh install script executable"
         return
     fi

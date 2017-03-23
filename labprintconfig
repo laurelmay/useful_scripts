@@ -15,11 +15,11 @@
 # Global variables
 #------------------
 # Provides your public IP address as a string
-IP_API_URL="https://api.ipify.org"
+ip_api_url="https://api.ipify.org"
 # Name of the Black & White printer
-BW_PRINTER="LabPrintBW"
+bw_printer="LabPrintBW"
 # Name of the color printer
-COLOR_PRINTER="LabPrintColor"
+color_printer="LabPrintColor"
 
 #-----------
 # Functions
@@ -34,14 +34,14 @@ COLOR_PRINTER="LabPrintColor"
 #                 printing
 #--------------------------------------------------------------------------
 configure_printer() {
-    local GENERIC_PS_PPD="drv:///sample.drv/generic.ppd"
-    local PRINTER_LOCATON="JMU Labs & Libraries"
-    local PRINTER_URI="lpd://labremoteprint@labprint.jmu.edu/${1}"
+    local generic_ps_ppd="drv:///sample.drv/generic.ppd"
+    local printer_location="JMU Labs & Libraries"
+    local printer_uri="lpd://labremoteprint@labprint.jmu.edu/${1}"
     echo "    Adding printer: ${1}"
     lpadmin -p JMU-${1} -E\
-        -v "${PRINTER_URI}" \
-        -L "${PRINTER_LOCATON}"\
-        -m "${GENERIC_PS_PPD}"\
+        -v "${printer_uri}" \
+        -L "${printer_location}"\
+        -m "${generic_ps_ppd}"\
         -o "Duplex=DuplexNoTumble"\
         -o "Option1=True"
 }
@@ -51,16 +51,16 @@ configure_printer() {
 # addresses begin with 134.126
 #------------------------------------------------------------------------
 check_connected_to_jmu() {
-    local IP_ADDRESS=$(curl -s ${IP_API_URL})
-    return $([ "${IP_ADDRESS#134.126}" != "${IP_ADDRESS}" ])
+    local ip_address=$(curl -s ${ip_api_url})
+    return $([ "${ip_address#134.126}" != "${ip_address}" ])
 }
 
 #----------------------------------------------------------------------------
 # Basically just for making it easier to list which printers are being added
 #----------------------------------------------------------------------------
 add_printers() {
-    configure_printer "${BW_PRINTER}"
-    configure_printer "${COLOR_PRINTER}"
+    configure_printer "${bw_printer}"
+    configure_printer "${color_printer}"
 }
 
 #--------------------------------------------------------------------------
@@ -75,7 +75,7 @@ check_group() {
 # Controls the flow, main logic, and most output of the script
 #--------------------------------------------------------------
 main() {
-    echo "==> About to configure the JMU LabPrint printers (${BW_PRINTER} & ${COLOR_PRINTER})"
+    echo "==> About to configure the JMU LabPrint printers (${bw_printer} & ${color_printer})"
     if ! $(check_connected_to_jmu); then
         echo "!!! ERROR: Not on network. The printers have not been added."
         echo "==> In order to add and use the LabPrint printers, you must be"

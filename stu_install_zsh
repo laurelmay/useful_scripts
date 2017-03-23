@@ -1,0 +1,249 @@
+#!/usr/bin/env bash
+##########################################################################
+# Downloads & compiles the source for zsh since stu doesn't have it      #
+# installed or include it in /etc/shells. This will install it to        #
+# $HOME/.local/bin. manpages will go in $HOME/.local/share/man. Using    #
+# $HOME/.local as the prefix complies with freedesktop hierarchy. Since  #
+# chsh can't be used for shells not in /etc/shells, .bashrc is modified  #
+# to exec zsh as a login shell.                                          #
+#                                                                        #
+# Author: Kyle Laker <kyle@laker.email>                                  #
+# Copyright (c) 2017 Kyle Laker                                          #
+# Licensed under the MIT License                                         #
+##########################################################################
+
+#-----------------
+# Global variables
+#-----------------
+ZSH_VERSION="5.3.1"
+ZSH_DOWNLOAD_URL="http://sourceforge.net/projects/zsh/files/zsh/${ZSH_VERSION}/zsh-${ZSH_VERSION}.tar.xz"
+OH_MY_ZSH_URL="https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh"
+OH_MY_ZSH_SCRIPT_NAME="oh-my-zsh-install.sh"
+INSTALL_DIRECTORY="${HOME}/zsh_install"
+CONFIG_PREFIX_PATH="${HOME}/.local"
+
+#----------
+# Functions
+#----------
+
+#---
+# Downloads the zsh source from the URL defined globally and then
+# un-tars it. Ideally, this would rely on the zsh git repo, but I was
+# getting connection refused when trying to git clone while writing this
+# script.
+#---
+download_source() {
+    echo "==> Downloading zsh sources"
+    wget ${ZSH_DOWNLOAD_URL} && \
+    echo "==> Untarring sources" && \
+    tar xf "zsh-${ZSH_VERSION}.tar.xz"
+}
+
+#---
+# Runs the configuration scripts in the zsh souces to prepare for
+# running make. This requires running the preconfig and configure
+# scripts.
+#---
+configure() {
+    echo "==> Running zsh preconfigure"
+    ./Util/preconfig && \
+    echo "==> Configuring zsh with prefix set to ${CONFIG_PREFIX_PATH}" && \
+    ./configure --prefix="${CONFIG_PREFIX_PATH}"
+}
+
+#---
+# Makes and tests zsh. Uses -j4 for the make because stu can probably
+# handle that without much of an issue. Also runs make check.
+#---
+make_zsh() {
+    echo "==> Making zsh"
+    make -j4 && \
+    echo "==> Running make check" && \
+    make check
+}
+
+#---
+# Runs make install, which will place everything in the directory
+# specified in $CONFIG_PREFIX_PATH.
+#---
+install() {
+    echo "==> Installing zsh"
+    make install
+}
+
+#---
+# Essentially replaces .bashrc with a single line that execs zsh with
+# the login command line flag. Backs up the bashrc first and then writes
+# the new config.
+#---
+modify_bashrc() {
+    if [ ! -f "${HOME}/.bashrc" ]; then
+        echo "==> No .bashrc to back up"
+    else
+        echo "==> Backing up ~/.bashrc to ~/.bashrc.bak"
+        mv "${HOME}/.bashrc" "${HOME}/.bashrc.bak"
+    fi
+    echo "==> Using roundabout way of using zsh as login shell"
+cat <<'EOF' > "${HOME}/.bashrc"
+if [ -z "$PS1" ]; then
+    return
+fi
+exec ${HOME}/.local/bin/zsh -l
+EOF
+}
+
+
+#---
+# Downloads the oh-my-zsh install script and places it in the location
+# specified by OH_MY_ZSH_SCRIPT_NAME.
+#---
+download_oh_my_zsh() {
+    echo "==> Downloading Oh My Zsh install script"
+    curl -l "${OH_MY_ZSH_URL}" -o "${OH_MY_ZSH_SCRIPT_NAME}"
+}
+
+#---
+# Comments out five lines the oh-my-zsh install script because the
+# script will check for zsh in /etc/shells. Clearly in an environment
+# where zsh is being put in your home directory, there isn't much access
+# to modify /etc/shells.
+#---
+modify_oh_my_zsh() {
+    sed -i"" -e '/CHECK_ZSH_INSTALLED=/,+4 s/^/#/' ${OH_MY_ZSH_SCRIPT_NAME}
+}
+
+#---
+# Executes the modified oh-my-zsh install script. The install script
+# attempts to run chsh which will fail. This function alerts the user
+# that particular error is okay. The bashrc modifications get us around
+# this.
+#---
+install_oh_my_zsh() {
+    echo "==> Executing Oh My Zsh install script. At the end if you get an"
+    echo "    error about chsh failing, that's okay"
+    ./${OH_MY_ZSH_SCRIPT_NAME}
+}
+
+#---
+# Creates the install directory, by default $HOME/zsh_install. This is
+# set by INSTALL_DIRECTORY global variable.
+#---
+create_install_directory() {
+    echo "==> Creating install directory"
+    mkdir -p "${INSTALL_DIRECTORY}"
+}
+
+#---
+# Displays a message alerting the user that the install completed
+# successfully.
+#---
+install_complete_message() {
+cat <<EOF
+==> Installation complete
+
+    Make sure to set MANPATH=\$HOME/.local/share/man if you want the zsh
+    documentation.
+
+    github.com/kylelaker/dotfiles/ may be of use if you want a starter
+    config for zsh as well as other things.
+
+    If you sign out then sign back in or simply start a new terminal
+    session, you should have zsh as your shell.
+EOF
+}
+
+#---
+# Directs error output to stderr.
+#---
+err() {
+    echo "!!! $@" >&2
+}
+
+#---
+# Handles the main logic of the script. Essentially runs all the
+# functions in the script with a check to see if they worked or not. If
+# they failed, the function returns. In most cases, execution should not
+# continue if the exit status of the previous step was non-zero. There
+# are some cases were it is inconsequential: .bashrc editing & oh-my-zsh
+# installation. Also handles directory changes and permissions changes
+# between some steps.
+#---
+main() {
+    echo "==> Installing ZSH ${ZSH_VERSION}"
+
+    if ! create_install_directory; then
+        err "There was a problem creating the install directory"
+        return
+    fi
+
+    if ! cd "${INSTALL_DIRECTORY}"; then
+        err "Unable to enter install directory"
+        return
+    fi
+
+    if ! download_source; then
+        err "Error downloading source"
+        return
+    fi
+
+    if ! cd "zsh-${ZSH_VERSION}"; then
+        err "Unable to enter zsh source directory"
+        return
+    fi
+
+    if ! configure; then
+        err "Error while configuring"
+        return
+    fi
+
+    if ! make_zsh; then
+        err "Error while making zsh"
+        return
+    fi
+
+    if ! install; then
+        err "Install failed"
+        return
+    fi
+
+    if ! modify_bashrc; then
+        err "Unable to modify bashrc"
+        echo "    zsh will not be your default shell." >&2
+        echo "    Continuing anyway..." >&2
+    fi
+
+    if ! cd "${INSTALL_DIRECTORY}"; then
+        err "Unable to enter install directory"
+        return
+    fi
+
+    #TODO: Consider adding a prompt for Oh My Zsh install
+
+    if ! download_oh_my_zsh; then
+        err "Error downloading Oh My Zsh"
+        return
+    fi
+
+    if ! modify_oh_my_zsh; then
+        err "Could not make necessary modifications to Oh My Zsh install script"
+        return
+    fi
+
+    if ! chmod +x "./${OH_MY_ZSH_SCRIPT_NAME}"; then
+        err "Error making Oh My Zsh install script executable"
+        return
+    fi
+
+    if ! install_oh_my_zsh; then
+        echo "==> There may have been some errors during the oh-my-zsh install"
+        echo "    if these were about chsh, you are fine. If there are anything"
+        echo "    else, Oh My Zsh may not have installed correctly."
+    fi
+
+    install_complete_message
+}
+
+#---
+# Actually call the main method to begin execution.
+#---
+main

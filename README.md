@@ -1,3 +1,3 @@
-#useful_scripts
+# useful_scripts
 
 Useful Bash Scripts

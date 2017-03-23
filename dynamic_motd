@@ -5,9 +5,9 @@
 # file /etc/motd-maint should be created.
 
 #Define Variables
-PROCCOUNT=`ps -l | wc -l`
-PROCCOUNT=`expr $PROCCOUNT - 4`
-SESSIONS=$(who | grep $USER | wc -l)
+proccount=$(ps -l | wc -l)
+proccount=$(expr ${proccount} - 4)
+sessions=$(who | grep $USER | wc -l)
 
 #Text formatting
 Bold='\e[1m'
@@ -22,26 +22,32 @@ Pur='\e[0;35m';     BPur='\e[1;35m';    UPur='\e[4;35m';    IPur='\e[0;95m';    
 Cya='\e[0;36m';     BCya='\e[1;36m';    UCya='\e[4;36m';    ICya='\e[0;96m';    BICya='\e[1;96m';   On_Cya='\e[46m';    On_ICya='\e[0;106m';
 Whi='\e[0;37m';     BWhi='\e[1;37m';    UWhi='\e[4;37m';    IWhi='\e[0;97m';    BIWhi='\e[1;97m';   On_Whi='\e[47m';    On_IWhi='\e[0;107m';
 
-#Format text based on values
-[[ $SESSIONS -gt 1 ]] && SESSIONS="${Red}${SESSIONS}${RCol}" || SESSIONS="${Gre}${SESSIONS}${RCol}"
+numupdates=$(pacman -Qu | wc -l)
+
+if (( numupdates > 0 )); then
+    updates=${BRed}${numupdates}${RCol}
+else
+    updates=${BGre}${numupdates}${RCol}
+fi
 
 #Begin output
 echo -e "
 +++++++++++++++++: ${Bold}System Data${RCol} :+++++++++++++++++++
-+  Hostname = ${BCya}`hostname`${RCol}
-+   Address = ${Bold}`ifconfig wlp3s0 | grep -m1 inet | sed 's/^ *//g' | cut -d\  -f 2 | sed 's/addr://g'`${RCol}
-+    Kernel = `uname -r`
-+    Uptime = `uptime -p`
-+       CPU =`cat /proc/cpuinfo | grep -m1 "model name" | cut -d: -f2 | sed 's/           / /g'` X `nproc`
-+    Memory = `cat /proc/meminfo | grep MemTotal | awk {'print $2'}` kB
+      Hostname = ${BCya}$(hostname)${RCol}
+       Address = ${Bold}$(ip a show dev wlp3s0 | grep -m1 inet | sed 's/^ *//g' | cut -d\  -f 2 | cut -d '/' -f 1 | sed 's/addr://g')${RCol}
+        Kernel = $(uname -r)
+        Uptime = $(uptime -p)
+           CPU = $(cat /proc/cpuinfo | grep -m1 "model name" | cut -d: -f2 | sed 's/           / /g' | sed -e 's/^[[:space:]]*//') X $(nproc)
+        Memory = $(cat /proc/meminfo | grep MemTotal | awk {'print $2'}) kB
+ Updates Avail = ${updates}
 ++++++++++++++++++: ${Bold}User Data${RCol} :++++++++++++++++++++
-+  Username = `whoami`
-+    Groups = `groups`
-+  Sessions = $SESSIONS of 1
-+ Processes = $PROCCOUNT
+      Username = $(whoami)
+        Groups = $(groups)
+      Sessions = ${sessions}
+     Processes = ${proccount}
 +++++++++++++: ${Bold}Helpful Information${RCol} :+++++++++++++++
-+ Users logged in = ${BCya}`users | tr ' ' '\n' | sort -u | wc -l`${RCol}
+ Users logged in = ${BCya}$(users | tr ' ' '\n' | sort -u | wc -l)${RCol}
 +++++++++++: ${Bold}Maintenance Information${RCol} :+++++++++++++
-`cat /etc/motd-maint | while read maintline; do echo "+ ${Red}${maintline}${RCol}"; done`
+$(cat /etc/motd-maint | while read maintline; do echo " ${Red}${maintline}${RCol}"; done)
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 "

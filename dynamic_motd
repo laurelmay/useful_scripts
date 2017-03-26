@@ -42,12 +42,12 @@ echo -e "
  Updates Avail = ${updates}
 ++++++++++++++++++: ${Bold}User Data${RCol} :++++++++++++++++++++
       Username = $(whoami)
-        Groups = $(groups)
+        Groups = $(id -Gn)
       Sessions = ${sessions}
      Processes = ${proccount}
 +++++++++++++: ${Bold}Helpful Information${RCol} :+++++++++++++++
  Users logged in = ${BCya}$(users | tr ' ' '\n' | sort -u | wc -l)${RCol}
 +++++++++++: ${Bold}Maintenance Information${RCol} :+++++++++++++
-$(cat /etc/motd-maint | while read maintline; do echo " ${Red}${maintline}${RCol}"; done)
+$(cat /etc/motd-maint 2> /dev/null  | while read maintline; do echo " ${Red}${maintline}${RCol}"; done)
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 "

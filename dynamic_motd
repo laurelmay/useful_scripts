@@ -7,7 +7,7 @@
 #Define Variables
 proccount=$(ps -l | wc -l)
 proccount=$(( proccount - 4 ))
-sessions=$(who | grep $USER | wc -l)
+sessions="$(who | grep -c "$(id -urn)")"
 
 #Text formatting
 bold='\e[1m'
@@ -39,7 +39,7 @@ function maint_motd_text() {
 }
 
 #Begin output
-printf 2>/dev/null "
+echo 2>/dev/null "
 +++++++++++++++++: ${bold}System Data${reset} :+++++++++++++++++++
       Hostname = ${bold_cyan}$(hostname)${reset}
        Address = ${bold}$(hostname -i)${reset}

@@ -156,7 +156,7 @@ EOF
 # Directs error output to stderr.
 #---
 err() {
-    echo "!!! $@" >&2
+    echo "!!! $*" >&2
 }
 
 #---

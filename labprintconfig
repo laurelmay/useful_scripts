@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 #############################################################################
 # This script adds the JMU LabPrint printers to a computer. This script has #
@@ -38,7 +38,7 @@ configure_printer() {
     local printer_location="JMU Labs & Libraries"
     local printer_uri="lpd://labremoteprint@labprint.jmu.edu/${1}"
     echo "    Adding printer: ${1}"
-    lpadmin -p JMU-${1} -E\
+    lpadmin -p "JMU-${1}" -E\
         -v "${printer_uri}" \
         -L "${printer_location}"\
         -m "${generic_ps_ppd}"\
@@ -51,8 +51,9 @@ configure_printer() {
 # addresses begin with 134.126
 #------------------------------------------------------------------------
 check_connected_to_jmu() {
-    local ip_address=$(curl -s ${ip_api_url})
-    return $([ "${ip_address#134.126}" != "${ip_address}" ])
+    local ip_address
+    ip_address="$(curl -s "${ip_api_url}")"
+    [ "${ip_address#134.126}" != "${ip_address}" ]
 }
 
 #----------------------------------------------------------------------------
@@ -68,7 +69,7 @@ add_printers() {
 # to be adding & configuring printers.
 #--------------------------------------------------------------------------
 check_group() {
-    return `groups $(whoami) | grep -q "\b_lpadmin\b\|\blpadmin\b\|\broot\b"`
+     id -Gn | grep -q "\b_lpadmin\b\|\blpadmin\b\|\broot\b"
 }
 
 #--------------------------------------------------------------
@@ -76,7 +77,7 @@ check_group() {
 #--------------------------------------------------------------
 main() {
     echo "==> About to configure the JMU LabPrint printers (${bw_printer} & ${color_printer})"
-    if ! $(check_connected_to_jmu); then
+    if ! check_connected_to_jmu; then
         echo "!!! ERROR: Not on network. The printers have not been added."
         echo "==> In order to add and use the LabPrint printers, you must be"
         echo "    connected to the JMU network through a wired or wireless"
@@ -85,7 +86,7 @@ main() {
         echo "    is incorrect, double check your settings and try again."
         exit 1
     fi
-    if ! $(check_group); then
+    if ! check_group; then
         echo "!!! ERROR: Improper permissions. The printers have not been added."
         echo "==> You do not have the required permissions to make modifications"
         echo "    to the printers on this computers. Please try running this again"

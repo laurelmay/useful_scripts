@@ -6,7 +6,7 @@
 
 #Define Variables
 proccount=$(ps -l | wc -l)
-proccount=$(expr ${proccount} - 4)
+proccount=$(( proccount - 4 ))
 sessions=$(who | grep $USER | wc -l)
 
 #Text formatting

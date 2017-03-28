@@ -1,4 +1,5 @@
 #!/bin/sh
 # Open home on stu in Nemo
 
-nemo ssh://$(whoami)@stu.cs.jmu.edu/cs/home/stu/$(whoami) &
+user=$(id -urn)
+nemo "ssh://${user}@stu.cs.jmu.edu/cs/home/stu/${user}" &

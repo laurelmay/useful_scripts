@@ -6,8 +6,8 @@
 # on any *nix-based OS with CUPS. The printers are added as Generic         #
 # PostScript devices.                                                       #
 #                                                                           #
-# Author: Kyle Laker <kyle@kylelaker.com>                                   #
-# Copyright (c) 2016 Kyle Laker                                             #
+# Author: Kyle Laker <kyle@laker.email>                                     #
+# Copyright (c) 2017 Kyle Laker                                             #
 # Licensed under the MIT License                                            #
 #############################################################################
 
@@ -20,6 +20,9 @@ ip_api_url="https://api.ipify.org"
 bw_printer="LabPrintBW"
 # Name of the color printer
 color_printer="LabPrintColor"
+# Domain and user for the labprint printers
+lab_print_domain="labprint.jmu.edu"
+lpd_user="labremoteprint"
 
 #-----------
 # Functions
@@ -36,14 +39,21 @@ color_printer="LabPrintColor"
 configure_printer() {
     local generic_ps_ppd="drv:///sample.drv/generic.ppd"
     local printer_location="JMU Labs & Libraries"
-    local printer_uri="lpd://labremoteprint@labprint.jmu.edu/${1}"
+    local printer_uri="lpd://${lpd_user}@${lab_print_domain}/${1}"
     echo "    Adding printer: ${1}"
-    lpadmin -p "JMU-${1}" -E\
-        -v "${printer_uri}" \
-        -L "${printer_location}"\
-        -m "${generic_ps_ppd}"\
-        -o "Duplex=DuplexNoTumble"\
-        -o "Option1=True"
+    if [[ "$no_duplex" = false ]]; then
+        lpadmin -p "JMU-${1}" -E\
+            -v "${printer_uri}"\
+            -L "${printer_location}"\
+            -m "${generic_ps_ppd}"\
+            -o "Duplex=DuplexNoTumble"\
+            -o "Option1=True"
+    else
+        lpadmin -p "JMU-${1}" -E\
+            -v "${printer_uri}"\
+            -L "${printer_location}"\
+            -m "${generic_ps_ppd}"
+    fi
 }
 
 #------------------------------------------------------------------------
@@ -53,15 +63,23 @@ configure_printer() {
 check_connected_to_jmu() {
     local ip_address
     ip_address="$(curl -s "${ip_api_url}")"
-    [ "${ip_address#134.126}" != "${ip_address}" ]
+    if [ "${ip_address#134.126}" != "${ip_address}" ]; then
+        ip_checks_out=true
+    else
+        ip_checks_out=false
+    fi
 }
 
 #----------------------------------------------------------------------------
 # Basically just for making it easier to list which printers are being added
 #----------------------------------------------------------------------------
 add_printers() {
-    configure_printer "${bw_printer}"
-    configure_printer "${color_printer}"
+    if [[ "$no_bw_printer" == false ]]; then
+        configure_printer "${bw_printer}"
+    fi
+    if [[ $no_color_printer == false ]]; then
+        configure_printer "${color_printer}"
+    fi
 }
 
 #--------------------------------------------------------------------------
@@ -69,24 +87,99 @@ add_printers() {
 # to be adding & configuring printers.
 #--------------------------------------------------------------------------
 check_group() {
-     id -Gn | grep -q "\b_lpadmin\b\|\blpadmin\b\|\broot\b"
+    user_in_a_cups_sysem_group=false
+    local cups_system_group_list
+    cups_system_group_list=$(grep SystemGroup /etc/cups/cups-file.conf | cud -d' ' -f2-)
+    for group in $cups_system_group_list; do
+        if id -Gn | grep "$group"; then
+            user_in_a_cups_sysem_group=true
+            break;
+        fi
+    done
+}
+
+parse_args() {
+    no_bw_printer=false
+    no_color_printer=false
+    ignore_ip=false
+    no_duplex=false
+    while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help) show_help; exit;;
+
+        --no-bw-printer) no_bw_printer=true; shift 1;;
+        --no-color-printer) no_color_printer=true; shift 1;;
+        --add-if-not-on-network) ignore_ip=true; shift 1;;
+        --no-duplex) no_duplex=true; shift 1;;
+
+        --bw-printer-name=*) bw_printer="${1#*=}"; shift 1;;
+        --color-printer-name=*) color_printer="${1#*=}"; shift 1;;
+
+        *) show_help; exit 1;;
+    esac
+done
+}
+
+show_help() {
+    echo "labprintconfig [OPTION]..."
+    echo " DESCRIPTION"
+    echo "  By default, this will install both the color and BW labprint"
+    echo "  printers with duplex printing, and requires the computer be"
+    echo "  connected to the network in some way. The printers are added"
+    echo "  as JMU-${bw_printer} and JMU-${color_printer}"
+    echo " "
+    echo " OPTIONS"
+    echo "  -h, --help"
+    echo "          print this help text"
+    echo "  --no-bw-printer"
+    echo "          do not add the black & white printer during install"
+    echo "  --no-color-printer"
+    echo "          do not add the color printer during install"
+    echo "  --no-duplex"
+    echo "          do not configure the ability for duplex printing"
+    echo "  --add-if-not-on-network"
+    echo "          add the printers even if not detected as being connected to the JMU network"
+    echo "  --bw-printer-name=NAME"
+    echo "          set the name of the black & white printer on the server"
+    echo "  --color-printer-name=NAME"
+    echo "          set the name of the color printer on the server"
 }
 
 #--------------------------------------------------------------
 # Controls the flow, main logic, and most output of the script
 #--------------------------------------------------------------
 main() {
-    echo "==> About to configure the JMU LabPrint printers (${bw_printer} & ${color_printer})"
-    if ! check_connected_to_jmu; then
+    parse_args "$@"
+    if [[ "$no_bw_printer" == true ]] && [[ "$no_color_printer" == true ]]; then
+        echo "!!! No printers to be added."
+        echo "    Exiting."
+        exit 1
+    elif [[ "$no_bw_printer" == true ]]; then
+        echo "==> About to configure the JMU LabPrint printer: ${color_printer}"
+    elif [[ "$no_color_printer" == true ]]; then
+        echo "==> About to configure the JMU LabPrint printer: ${bw_printer}"
+    else
+        echo "==> About to configure the JMU LabPrint printers (${bw_printer} & ${color_printer})"
+    fi
+    check_connected_to_jmu
+    if  [[ "$ip_checks_out" = false ]] && [[ "$ignore_ip" = false ]]; then
         echo "!!! ERROR: Not on network. The printers have not been added."
-        echo "==> In order to add and use the LabPrint printers, you must be"
+        echo "    In order to add and use the LabPrint printers, you must be"
         echo "    connected to the JMU network through a wired or wireless"
         echo "    connection or through the SSLVPN. You do not appear to be"
         echo "    connected through any of these methods. If you believe this"
         echo "    is incorrect, double check your settings and try again."
+        echo "    You may also run this again with the flag --add-if-not-on-network"
+        echo "    to ignore this check."
         exit 1
     fi
-    if ! check_group; then
+    if [[ "$ip_checks_out" = false ]] && [[ "$ignore_ip" = true ]]; then
+        echo "==> INFO: Proceeding without being connected to the JMU network."
+        echo "    You will not be able to print to the labprint printers until"
+        echo "    you successfully connect through a wired or wireless connection"
+        echo "    or by using the SSLVPN."
+    fi
+    if [[ "$user_in_a_cups_sysem_group" == false ]]; then
         echo "!!! ERROR: Improper permissions. The printers have not been added."
         echo "==> You do not have the required permissions to make modifications"
         echo "    to the printers on this computers. Please try running this again"
@@ -102,4 +195,4 @@ main() {
 #-------------------------
 # Actually run the script
 #-------------------------
-main
+main "$@"

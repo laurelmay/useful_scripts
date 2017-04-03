@@ -34,7 +34,7 @@ config_prefix_path="${HOME}/.local"
 # script.
 #---
 download_source() {
-    if [[ "$use_git_source" == true ]]; then
+    if [[ "$use_git_source" == false ]]; then
         echo "==> Downloading zsh sources"
         wget ${zsh_download_url} && \
         echo "==> Untarring sources" && \

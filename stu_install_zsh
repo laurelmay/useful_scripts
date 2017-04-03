@@ -71,7 +71,7 @@ make_zsh() {
 # Runs make install, which will place everything in the directory
 # specified in $config_prefix_path.
 #---
-install() {
+install_zsh() {
     echo "==> Installing zsh"
     make install
 }
@@ -246,7 +246,7 @@ main() {
         return
     fi
 
-    if ! install; then
+    if ! install_zsh; then
         err "Install failed"
         return
     fi

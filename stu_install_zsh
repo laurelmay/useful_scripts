@@ -247,6 +247,21 @@ main() {
     fi
 
     if ! install_zsh; then
+        if [[ "$use_git_source" = true ]]; then
+            echo "!!! There may have been an error installing zsh. Since you have"
+            echo "    chosen to use the git source, this could be due to the fact"
+            echo "    that documentation cannot be successfully installed. Otherwise"
+            echo "    it may be do to a real failure. Since installing from the git"
+            echo "    sources may have a reasonable cause, check the message above"
+            echo "    if it seems related to the install of documentation..."
+            read -n1 -r -p "   Press any key to continue... or ^C to quit" key
+        else
+            err "Install failed"
+            return
+        fi
+    fi
+
+    if ! install_zsh && [[ "$use_git_source" = false ]]; then
         err "Install failed"
         return
     fi

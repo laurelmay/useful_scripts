@@ -17,6 +17,7 @@
 #-----------------
 zsh_version="5.3.1"
 zsh_download_url="http://sourceforge.net/projects/zsh/files/zsh/${zsh_version}/zsh-${zsh_version}.tar.xz"
+zsh_git_url="git://git.code.sf.net/p/zsh/code"
 oh_my_zsh_url="https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh"
 oh_my_script_name="oh-my-zsh-install.sh"
 install_directory="${HOME}/zsh_install"
@@ -33,10 +34,14 @@ config_prefix_path="${HOME}/.local"
 # script.
 #---
 download_source() {
-    echo "==> Downloading zsh sources"
-    wget ${zsh_download_url} && \
-    echo "==> Untarring sources" && \
-    tar xf "zsh-${zsh_version}.tar.xz"
+    if [[ "$use_git_source" == true ]]; then
+        echo "==> Downloading zsh sources"
+        wget ${zsh_download_url} && \
+        echo "==> Untarring sources" && \
+        tar xf "zsh-${zsh_version}.tar.xz"
+    else
+        git clone "${zsh_git_url}" zsh
+    fi
 }
 
 #---
@@ -159,6 +164,38 @@ err() {
     echo "!!! $*" >&2
 }
 
+parse_args() {
+    use_git_source=false
+    user_wants_oh_my_zsh=false;
+    while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help) show_help; exit;;
+
+        -G|--git) use_git_source=true; shift 1;;
+        --install-oh-my-zsh) user_wants_oh_my_zsh=true; shift 1;;
+
+        *) show_help; exit 1;;
+    esac
+    done
+}
+
+show_help() {
+    echo "stu_install_zsh [OPTION]..."
+    echo " DESCRIPTION"
+    echo "  Installs ZSH into the user's home directory and modifies the"
+    echo "  ~/.bashrc file to execute zsh as a login shell. Optionally,"
+    echo "  this can also download and configure oh-my-zsh"
+    echo ""
+    echo " OPTIONS"
+    echo "  -h, --help"
+    echo "          display this help text"
+    echo "  -G, --git"
+    echo "          download the sources from the git repo rather than using"
+    echo "          a release version. This may be unstable."
+    echo "  --install-oh-my-zsh"
+    echo "          also download, install, and configure oh-my-zsh"
+}
+
 #---
 # Handles the main logic of the script. Essentially runs all the
 # functions in the script with a check to see if they worked or not. If
@@ -169,6 +206,7 @@ err() {
 # between some steps.
 #---
 main() {
+    parse_args "$@"
     echo "==> Installing ZSH ${zsh_version}"
 
     if ! create_install_directory; then
@@ -186,9 +224,16 @@ main() {
         return
     fi
 
-    if ! cd "zsh-${zsh_version}"; then
-        err "Unable to enter zsh source directory"
-        return
+    if [[ "$use_git_source" == false ]]; then
+        if ! cd "zsh-${zsh_version}"; then
+            err "Unable to enter zsh source directory"
+            return
+        fi
+    else
+        if ! cd "zsh"; then
+            err "Unable to enter zsh source directory"
+            return
+        fi
     fi
 
     if ! configure; then
@@ -217,27 +262,27 @@ main() {
         return
     fi
 
-    #TODO: Consider adding a prompt for Oh My Zsh install
+    if [[ "$user_wants_oh_my_zsh" == true ]]; then
+        if ! download_oh_my_zsh; then
+            err "Error downloading Oh My Zsh"
+            return
+        fi
 
-    if ! download_oh_my_zsh; then
-        err "Error downloading Oh My Zsh"
-        return
-    fi
+        if ! modify_oh_my_zsh; then
+            err "Could not make necessary modifications to Oh My Zsh install script"
+            return
+        fi
 
-    if ! modify_oh_my_zsh; then
-        err "Could not make necessary modifications to Oh My Zsh install script"
-        return
-    fi
+        if ! chmod +x "./${oh_my_script_name}"; then
+            err "Error making Oh My Zsh install script executable"
+            return
+        fi
 
-    if ! chmod +x "./${oh_my_script_name}"; then
-        err "Error making Oh My Zsh install script executable"
-        return
-    fi
-
-    if ! install_oh_my_zsh; then
-        echo "==> There may have been some errors during the oh-my-zsh install"
-        echo "    if these were about chsh, you are fine. If there are anything"
-        echo "    else, Oh My Zsh may not have installed correctly."
+        if ! install_oh_my_zsh; then
+            echo "==> There may have been some errors during the oh-my-zsh install"
+            echo "    if these were about chsh, you are fine. If there are anything"
+            echo "    else, Oh My Zsh may not have installed correctly."
+        fi
     fi
 
     install_complete_message
@@ -246,4 +291,4 @@ main() {
 #---
 # Actually call the main method to begin execution.
 #---
-main
+main "$@"

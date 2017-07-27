@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# Update Arch mirrors based on the beginning of my public IP address.
+# 134.126 = On campus, so use mirror.jmu.edu, otherwise, use the
+# kernel.org mirrors
+
+check_if_jmu() {
+    local ip_address
+    ip_address="$(curl -s "https://api.ipify.org")"
+    if [ "${ip_address#134.126}" != "${ip_address}" ]; then
+        ip_is_jmu=true
+    else
+        ip_is_jmu=false
+    fi
+}
+
+main() {
+    check_if_jmu
+    if [[ "${ip_is_jmu}" = true ]]; then
+        echo 'Server = http://mirror.jmu.edu/pub/archlinux/$repo/os/$arch' > /etc/pacman.d/currentmirrors
+    else
+	echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' > /etc/pacman.d/currentmirrors
+    fi
+}
+
+main

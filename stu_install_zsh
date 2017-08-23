@@ -172,6 +172,7 @@ parse_args() {
         -h|--help) show_help; exit;;
 
         -G|--git) use_git_source=true; zsh_version=""; shift 1;;
+        -V|--version) zsh_version="$2"; shift 2;;
         --install-oh-my-zsh) user_wants_oh_my_zsh=true; shift 1;;
 
         *) show_help; exit 1;;
@@ -192,6 +193,8 @@ show_help() {
     echo "  -G, --git"
     echo "          download the sources from the git repo rather than using"
     echo "          a release version. This may be unstable."
+    echo "  -V <VERSION>, --zsh-version <VERSION>"
+    echo "          the version of ZSH to install"
     echo "  --install-oh-my-zsh"
     echo "          also download, install, and configure oh-my-zsh"
 }

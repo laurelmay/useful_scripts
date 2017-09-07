@@ -16,6 +16,8 @@
 #------------------
 # Provides your public IP address as a string
 ip_api_url="https://api.ipify.org"
+# Prefix to use before printer names
+printer_display_prefix="JMU"
 # Name of the Black & White printer
 bw_printer="LabPrintBW"
 # Name of the color printer
@@ -101,7 +103,6 @@ check_group() {
 parse_args() {
     no_bw_printer=false
     no_color_printer=false
-    ignore_ip=false
     no_duplex=false
     while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -109,7 +110,6 @@ parse_args() {
 
         --no-bw-printer) no_bw_printer=true; shift 1;;
         --no-color-printer) no_color_printer=true; shift 1;;
-        --add-if-not-on-network) ignore_ip=true; shift 1;;
         --no-duplex) no_duplex=true; shift 1;;
 
         --bw-printer-name=*) bw_printer="${1#*=}"; shift 1;;
@@ -126,7 +126,7 @@ show_help() {
     echo "  By default, this will install both the color and BW labprint"
     echo "  printers with duplex printing, and requires the computer be"
     echo "  connected to the network in some way. The printers are added"
-    echo "  as JMU-${bw_printer} and JMU-${color_printer}"
+    echo "  as ${printer_display_prefix}-${bw_printer} and ${printer_display_prefix}-${color_printer}"
     echo " "
     echo " OPTIONS"
     echo "  -h, --help"
@@ -137,8 +137,6 @@ show_help() {
     echo "          do not add the color printer during install"
     echo "  --no-duplex"
     echo "          do not configure the ability for duplex printing"
-    echo "  --add-if-not-on-network"
-    echo "          add the printers even if not detected as being connected to the JMU network"
     echo "  --bw-printer-name=NAME"
     echo "          set the name of the black & white printer on the server"
     echo "  --color-printer-name=NAME"
@@ -162,19 +160,8 @@ main() {
         echo "==> About to configure the JMU LabPrint printers (${bw_printer} & ${color_printer})"
     fi
     check_connected_to_jmu
-    if  [[ "$ip_checks_out" = false ]] && [[ "$ignore_ip" = false ]]; then
-        echo "!!! ERROR: Not on network. The printers have not been added."
-        echo "    In order to add and use the LabPrint printers, you must be"
-        echo "    connected to the JMU network through a wired or wireless"
-        echo "    connection or through the SSLVPN. You do not appear to be"
-        echo "    connected through any of these methods. If you believe this"
-        echo "    is incorrect, double check your settings and try again."
-        echo "    You may also run this again with the flag --add-if-not-on-network"
-        echo "    to ignore this check."
-        exit 1
-    fi
-    if [[ "$ip_checks_out" = false ]] && [[ "$ignore_ip" = true ]]; then
-        echo "==> INFO: Proceeding without being connected to the JMU network."
+    if [[ "$ip_checks_out" = false ]]; then
+        echo "==> INFO: Proceeding, but you may not be connected to the JMU network."
         echo "    You will not be able to print to the labprint printers until"
         echo "    you successfully connect through a wired or wireless connection"
         echo "    or by using the SSLVPN."

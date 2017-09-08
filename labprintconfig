@@ -3,8 +3,9 @@
 #############################################################################
 # This script adds the JMU LabPrint printers to a computer. This script has #
 # been tested on Linux Mint 18 and macOS Sierra, but should reasonably work #
-# on any *nix-based OS with CUPS. The printers are added as Generic         #
-# PostScript devices.                                                       #
+# on any *nix-based OS with CUPS. On systems were `lpadmin` is located in   #
+# /sbin/ (aka Debian), this script will always need to be run as root.      #
+# The printers are added as Generic PostScript devices.                     #
 #                                                                           #
 # Author: Kyle Laker <kyle@laker.email>                                     #
 # Copyright (c) 2017 Kyle Laker                                             #
@@ -14,7 +15,7 @@
 #------------------
 # Global variables
 #------------------
-# Provides your public IP address as a string
+# A service to get your IP address as a string
 ip_api_url="https://api.ipify.org"
 # Prefix to use before printer names
 printer_display_prefix="JMU"
@@ -60,7 +61,7 @@ configure_printer() {
 
 #------------------------------------------------------------------------
 # Ensure the user is somehow connected to the campus network. All JMU IP
-# addresses begin with 134.126
+# addresses begin with 134.126.
 #------------------------------------------------------------------------
 check_connected_to_jmu() {
     local ip_address
@@ -90,7 +91,6 @@ add_printers() {
 #--------------------------------------------------------------------------
 check_group() {
     user_in_a_cups_sysem_group=false
-    local cups_system_group_list
     cups_system_group_list=$(grep SystemGroup /etc/cups/cups-file.conf | cud -d' ' -f2-)
     for group in $cups_system_group_list; do
         if id -Gn | grep "$group"; then
@@ -141,6 +141,15 @@ show_help() {
     echo "          set the name of the black & white printer on the server"
     echo "  --color-printer-name=NAME"
     echo "          set the name of the color printer on the server"
+    echo ""
+    echo " EXIT CODES"
+    echo "  1  - \`lpadmin\` command is unavailable"
+    echo "  2  - No printers have been set to be added"
+    echo "  3  - User is not a group with permissions to modify cups config"
+}
+
+exists() {
+  type "$1" >/dev/null 2>&1
 }
 
 #--------------------------------------------------------------
@@ -148,30 +157,40 @@ show_help() {
 #--------------------------------------------------------------
 main() {
     parse_args "$@"
+    if ! exists lpadmin; then
+        echo "!!! \`lpadmin\` in not in \$PATH. This script will not work."
+        echo "    Please ensure that the cups-client (or equivalent) package"
+        echo "    is installed. If \`lpadmin\` is in /sbin/, then this script"
+        echo "    will need to be run as root."
+        echo "    Exiting..."
+        exit 1
+    fi
     if [[ "$no_bw_printer" == true ]] && [[ "$no_color_printer" == true ]]; then
         echo "!!! No printers to be added."
         echo "    Exiting."
-        exit 1
+        exit 2
     elif [[ "$no_bw_printer" == true ]]; then
-        echo "==> About to configure the JMU LabPrint printer: ${color_printer}"
+        echo "==> The following printer will be configured: ${color_printer}"
     elif [[ "$no_color_printer" == true ]]; then
-        echo "==> About to configure the JMU LabPrint printer: ${bw_printer}"
+        echo "==> The following printer will be configured: ${bw_printer}"
     else
-        echo "==> About to configure the JMU LabPrint printers (${bw_printer} & ${color_printer})"
+        echo "==> The following printers will be configured: ${bw_printer} & ${color_printer}"
     fi
     check_connected_to_jmu
     if [[ "$ip_checks_out" = false ]]; then
         echo "==> INFO: Proceeding, but you may not be connected to the JMU network."
         echo "    You will not be able to print to the labprint printers until"
         echo "    you successfully connect through a wired or wireless connection"
-        echo "    or by using the SSLVPN."
+        echo "    on campus."
     fi
     if [[ "$user_in_a_cups_sysem_group" == false ]]; then
         echo "!!! ERROR: Improper permissions. The printers have not been added."
         echo "==> You do not have the required permissions to make modifications"
         echo "    to the printers on this computers. Please try running this again"
         echo "    as an administrator or with \`sudo\`."
-        exit 2
+        echo "    If it helps, acceptable groups are:"
+        echo "      ${cups_system_group_list}"
+        exit 3
     fi
     echo "==> Adding printers..."
     add_printers

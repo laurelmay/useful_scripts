@@ -3,12 +3,11 @@
 #############################################################################
 # This script adds the JMU LabPrint printers to a computer. This script has #
 # been tested on Linux Mint 18 and macOS Sierra, but should reasonably work #
-# on any *nix-based OS with CUPS. On systems were `lpadmin` is located in   #
-# /sbin/ (aka Debian), this script will always need to be run as root.      #
+# on any *nix-based OS with CUPS. On systems where `lpadmin` is located in  #
+# /sbin/ (Debian), this script will always need to be run as root.          #
 # The printers are added as Generic PostScript devices.                     #
 #                                                                           #
 # Author: Kyle Laker <kyle@laker.email>                                     #
-# Copyright (c) 2017 Kyle Laker                                             #
 # Licensed under the MIT License                                            #
 #############################################################################
 

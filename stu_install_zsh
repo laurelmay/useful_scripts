@@ -149,9 +149,6 @@ cat <<EOF
     Make sure to set MANPATH=\$HOME/.local/share/man if you want the zsh
     documentation.
 
-    github.com/kylelaker/dotfiles/ may be of use if you want a starter
-    config for zsh as well as other things.
-
     If you sign out then sign back in or simply start a new terminal
     session, you should have zsh as your shell.
 EOF

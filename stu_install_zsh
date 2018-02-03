@@ -62,7 +62,7 @@ configure() {
 #---
 make_zsh() {
     echo "==> Making zsh"
-    make -j4 && \
+    make --jobs=4 && \
     echo "==> Running make check" && \
     make check
 }
@@ -104,7 +104,7 @@ EOF
 #---
 download_oh_my_zsh() {
     echo "==> Downloading Oh My Zsh install script"
-    curl -l "${oh_my_zsh_url}" -o "${oh_my_script_name}"
+    curl "${oh_my_zsh_url}" --output "${oh_my_script_name}"
 }
 
 #---
@@ -114,7 +114,8 @@ download_oh_my_zsh() {
 # to modify /etc/shells.
 #---
 modify_oh_my_zsh() {
-    sed -i"" -e '/CHECK_ZSH_INSTALLED=/,+4 s/^/#/' ${oh_my_script_name}
+    sed --in-place --expression='/CHECK_ZSH_INSTALLED=/,+4 s/^/#/' \
+        ${oh_my_script_name}
 }
 
 #---
@@ -135,7 +136,7 @@ install_oh_my_zsh() {
 #---
 create_install_directory() {
     echo "==> Creating install directory"
-    mkdir -p "${install_directory}"
+    mkdir --parents "${install_directory}"
 }
 
 #---
@@ -251,10 +252,10 @@ main() {
             echo "!!! There may have been an error installing zsh. Since you have"
             echo "    chosen to use the git source, this could be due to the fact"
             echo "    that documentation cannot be successfully installed. Otherwise"
-            echo "    it may be do to a real failure. Since installing from the git"
+            echo "    it may be due to a real failure. Since installing from the git"
             echo "    sources may have a reasonable cause, check the message above"
             echo "    if it seems related to the install of documentation..."
-            read -n1 -r -p "   Press any key to continue... or ^C to quit" key
+            read -n1 -r -p "   Press any key to continue... or ^C to quit"
         else
             err "Install failed"
             return

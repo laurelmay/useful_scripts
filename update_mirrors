@@ -4,10 +4,17 @@
 # 134.126 = On campus, so use mirror.jmu.edu, otherwise, use the
 # kernel.org mirrors
 
+readonly jmu_mirror="http://mirror.jmu.edu/pub/"
+readonly kernel_mirror="http://mirrors.kernel.org/"
+readonly arch_path='archlinux/$repo/os/$arch'
+readonly mirror_file="/etc/pacman.d/currentmirrors"
+readonly ip_api="https://api.ipify.org"
+readonly jmu_ip="134.126"
+
 check_if_jmu() {
     local ip_address
-    ip_address="$(curl -s "https://api.ipify.org")"
-    if [ "${ip_address#134.126}" != "${ip_address}" ]; then
+    ip_address="$(curl -s "${ip_api}")"
+    if [ "${ip_address#"$jmu_ip"}" != "${ip_address}" ]; then
         ip_is_jmu=true
     else
         ip_is_jmu=false
@@ -17,10 +24,11 @@ check_if_jmu() {
 main() {
     check_if_jmu
     if [[ "${ip_is_jmu}" = true ]]; then
-        echo 'Server = http://mirror.jmu.edu/pub/archlinux/$repo/os/$arch' > /etc/pacman.d/currentmirrors
+        readonly full_line="Server = ${jmu_mirror}${arch_path}"
     else
-	echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' > /etc/pacman.d/currentmirrors
+        readonly full_line="Server = ${kernel_mirror}${arch_path}"
     fi
+    echo "$full_line" > "${mirror_file}"
 }
 
 main

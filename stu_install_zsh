@@ -7,6 +7,9 @@
 # chsh can't be used for shells not in /etc/shells, .bashrc is modified  #
 # to exec zsh as a login shell.                                          #
 #                                                                        #
+# Honestly, Linuxbrew is probably a better idea, but this may be easier  #
+# if ZSH is the only or one of only a few things you want to install     #
+#                                                                        #
 # Author: Kyle Laker <kyle@laker.email>                                  #
 # Copyright (c) 2017 Kyle Laker                                          #
 # Licensed under the MIT License                                         #
@@ -99,35 +102,22 @@ EOF
 
 
 #---
-# Downloads the oh-my-zsh install script and places it in the location
-# specified by oh_my_script_name.
+# Clones the Oh My Zsh git repo into the correct place
 #---
 download_oh_my_zsh() {
-    echo "==> Downloading Oh My Zsh install script"
-    curl "${oh_my_zsh_url}" --output "${oh_my_script_name}"
+    echo "==> Downloading Oh My Zsh"
+    git clone https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh
 }
 
-#---
-# Comments out five lines the oh-my-zsh install script because the
-# script will check for zsh in /etc/shells. Clearly in an environment
-# where zsh is being put in your home directory, there isn't much access
-# to modify /etc/shells.
-#---
-modify_oh_my_zsh() {
-    sed --in-place --expression='/CHECK_ZSH_INSTALLED=/,+4 s/^/#/' \
-        ${oh_my_script_name}
-}
 
 #---
-# Executes the modified oh-my-zsh install script. The install script
-# attempts to run chsh which will fail. This function alerts the user
-# that particular error is okay. The bashrc modifications get us around
-# this.
+# Copy the Oh My Zsh files into the correct place.
 #---
 install_oh_my_zsh() {
-    echo "==> Executing Oh My Zsh install script. At the end if you get an"
-    echo "    error about chsh failing, that's okay"
-    ./${oh_my_script_name}
+    echo "==> Installing Oh My Zsh. Your ~/.zshrc has been copied to"
+    echo "    ~/.zshrc.orig"
+    cp ~/.zshrc ~/.zshrc.orig && \
+        cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
 }
 
 #---
@@ -194,7 +184,7 @@ show_help() {
     echo "  -V <VERSION>, --zsh-version <VERSION>"
     echo "          the version of ZSH to install"
     echo "  --install-oh-my-zsh"
-    echo "          also download, install, and configure oh-my-zsh"
+    echo "          also download and install oh-my-zsh"
 }
 
 #---
@@ -281,16 +271,6 @@ main() {
     if [[ "$user_wants_oh_my_zsh" == true ]]; then
         if ! download_oh_my_zsh; then
             err "Error downloading Oh My Zsh"
-            return
-        fi
-
-        if ! modify_oh_my_zsh; then
-            err "Could not make necessary modifications to Oh My Zsh install script"
-            return
-        fi
-
-        if ! chmod +x "./${oh_my_script_name}"; then
-            err "Error making Oh My Zsh install script executable"
             return
         fi
 

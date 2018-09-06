@@ -32,13 +32,11 @@ function print_sums() {
 
 function main() {
     path=$1
-    if [ -z "$path" ]
-    then
+    if [ -z "$path" ]; then
         read -r -p "What would you like to find the sum for? " path
-	print_sums
+        print_sums
     else
-        until [ -z "$1" ]
-        do
+        until [ -z "$1" ]; do
             path=$1
             print_sums
             shift

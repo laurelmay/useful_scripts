@@ -5,7 +5,11 @@ function md5(){
   md5sum "$i" > "${i}".md5
 }
 
-for i in *.zip; do
-    echo "${i}"
-    md5
-done
+function main(){
+    for i in *.zip; do
+        echo "${i}"
+        md5
+    done
+}
+
+main "$@"

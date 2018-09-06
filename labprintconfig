@@ -89,14 +89,17 @@ add_printers() {
 # to be adding & configuring printers.
 #--------------------------------------------------------------------------
 check_group() {
-    user_in_a_cups_sysem_group=false
-    cups_system_group_list=$(grep SystemGroup /etc/cups/cups-file.conf | cud -d' ' -f2-)
+    user_in_a_cups_system_group=false
+    cups_system_group_list=$(grep SystemGroup /etc/cups/cups-files.conf | cut -d' ' -f2-)
     for group in $cups_system_group_list; do
         if id -Gn | grep "$group"; then
-            user_in_a_cups_sysem_group=true
+            user_in_a_cups_system_group=true
             break;
         fi
     done
+    if [ "$UID" -eq "0" ]; then
+        user_in_a_cups_system_group=true
+    fi
 }
 
 parse_args() {
@@ -182,7 +185,8 @@ main() {
         echo "    you successfully connect through a wired or wireless connection"
         echo "    on campus."
     fi
-    if [[ "$user_in_a_cups_sysem_group" == false ]]; then
+    check_group
+    if [[ "$user_in_a_cups_system_group" == false ]]; then
         echo "!!! ERROR: Improper permissions. The printers have not been added."
         echo "==> You do not have the required permissions to make modifications"
         echo "    to the printers on this computers. Please try running this again"

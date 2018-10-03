@@ -92,7 +92,7 @@ check_group() {
     user_in_a_cups_system_group=false
     cups_system_group_list=$(grep SystemGroup /etc/cups/cups-files.conf | cut -d' ' -f2-)
     for group in $cups_system_group_list; do
-        if id -Gn | grep "$group"; then
+        if id -Gn | grep -q "$group"; then
             user_in_a_cups_system_group=true
             break;
         fi

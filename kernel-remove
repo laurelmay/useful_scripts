@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+##############################################################################
+#                                                                            #
+# This script removes a bunch of the kernel-related files that get left      #
+# after installing a new version. Cleans up systemd-boot config, the images, #
+# and the modules directory.                                                 #
+#                                                                            #
+# Author: Kyle Laker <kyle@laker.email>                                      #
+##############################################################################
+
+kernel=""
+
+remove_source() {
+    if [ -n "$kernel" ]; then
+        rm -rf "/usr/src/linux-${kernel:?"kernel unset"}"
+    fi
+}
+
+remove_mods() {
+    if [ -n "$kernel" ]; then
+        rm -rf "/lib/modules/${kernel:?"kernel unset"}"
+    fi
+}
+
+cleanup_image() {
+    if [ -n "$kernel" ]; then
+        rm "/boot/config-${kernel:?"kernel unset"}"
+        rm "/boot/System.map-${kernel:?"kernel unset"}"
+        rm "/boot/vmlinuz-${kernel:?"kernel unset"}"
+    fi
+}
+
+cleanup_bootloader() {
+    local machine_id
+    machine_id=$(cat /etc/machine-id)
+
+    if [ -n "$kernel" ]; then
+        kernel-install remove "$kernel"
+    fi
+}
+
+main() {
+    for kernel in "$@"; do
+        read -p "Remove $kernel? " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            remove_mods
+            remove_source
+            cleanup_image
+            cleanup_bootloader
+        fi
+    done
+}
+
+main "$@"

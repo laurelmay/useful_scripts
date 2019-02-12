@@ -18,7 +18,7 @@
 #-----------------
 # Global variables
 #-----------------
-zsh_version="5.6.2"
+zsh_version="5.7.1"
 zsh_download_url="http://sourceforge.net/projects/zsh/files/zsh/${zsh_version}/zsh-${zsh_version}.tar.xz"
 zsh_git_url="git://git.code.sf.net/p/zsh/code"
 oh_my_zsh_url="https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh"
@@ -61,13 +61,11 @@ configure() {
 
 #---
 # Makes and tests zsh. Uses -j4 for the make because stu can probably
-# handle that without much of an issue. Also runs make check.
+# handle that without much of an issue.
 #---
 make_zsh() {
     echo "==> Making zsh"
-    make --jobs=4 && \
-    echo "==> Running make check" && \
-    make check
+    make --jobs=4
 }
 
 #---
@@ -250,11 +248,6 @@ main() {
             err "Install failed"
             return
         fi
-    fi
-
-    if ! install_zsh && [[ "$use_git_source" = false ]]; then
-        err "Install failed"
-        return
     fi
 
     if ! modify_bashrc; then

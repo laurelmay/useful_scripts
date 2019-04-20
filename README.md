@@ -23,6 +23,14 @@ the system and the user. Maintenance information can be written to
 computer through CUPS. This works on macOS, ArchLinux, and Linux Mint. It may
 work on other UNIX-based OSes that have CUPS as well.
 
+## launch.c
+
+This tool will spawn the given command with arguments in a child process. The
+parent will then exit. This can make it useful for launching GUI applications
+from the command line.
+
+This will need to be compiled before being used.
+
 ## md5gen
 
 Generates MD5 sums for all the zip files in the current directory.
@@ -43,3 +51,8 @@ installed as well
 On ArchLinux, this will update the mirrors in use based on the user's current
 IP address. /etc/pacman.d/currentmirrors must be what /etc/pacman.conf includes
 when looking for mirrors.
+
+## weather
+
+This will fetch data from the National Weather Service about the current
+temperature and active weather alerts.

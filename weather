@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+"""
+A Python script to get current weather data directly from the National Weather
+Service. This script queries specifically for current temperature and weather
+alerts for a given zone or station. Unfortunately, the API from the NWS does
+not allow lookups by ZIP code, but that would be cool to try to implement.
+
+To use as-is, someone would need to already know the appropriate zone and
+station, but these can be found on the NWS webpage for a particular query.
+
+Author: Kyle Laker <kyle@laker.email>
+Written for CS 347
+"""
+
+import sys
+import requests
+
+# zone to check for alerts
+ZONE = "VAZ026"
+# stations to check, in order (only the first to give a temp gets displayed)
+STATIONS = ["KSHD", "KCHO"]
+VERBOSE = False
+
+# The NWS asks that you use a User Agent string that includes contact info and
+# while that second bit especially seems silly, let's be nice and do it.
+HEADERS = {
+    'User-Agent': 'Kyle Laker Weather Fetcher <kyle@laker.email>'
+}
+
+
+def c_to_f(num):
+    """
+    Convert a temperature from Celcius to Fahrenheit.
+    """
+
+    return num * 1.8 + 32
+
+
+def temperature(station):
+    """
+    Retrieve the current temperature at a given station.
+
+    :param station: The NWS station code to retrieve data for (for example,
+                    the Shendandoah airport is KSHD).
+    """
+
+    # The full URL where the observation data can be reached
+    url = "https://api.weather.gov/stations/{}/observations/latest".format(
+        station
+    )
+
+    response = requests.get(url, headers=HEADERS)
+    data = response.json()
+    temperature_data = data['properties']['temperature']
+    if temperature_data['value']:
+        current_temp = temperature_data['value']
+        if temperature_data['unitCode'] == "unit:degC":
+            current_temp = c_to_f(current_temp)
+        return current_temp
+    return None
+
+
+def alert():
+    """
+    Retrieve a list of the current weather alerts in the global NWS zone
+    """
+
+    url = "https://api.weather.gov/alerts/active/zone/{}".format(ZONE)
+    response = requests.get(url, headers=HEADERS)
+    data = response.json()
+    alert_list = data['features']
+    if alert_list:
+        return ", ".join([str(alert['properties']['event']) for alert in alert_list])
+    return None
+
+
+def main():
+    global VERBOSE
+    VERBOSE = False
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--verbose":
+            VERBOSE = True
+
+    out = ""
+    curr_alert = alert()
+    temp = None
+
+    for station in STATIONS:
+        if VERBOSE:
+            print("==> Trying {}".format(station))
+        temp = temperature(station)
+        if temp:
+            temp = round(temp)
+            out = out + "{}\u00B0F".format(temp)
+            break
+
+    if temp and curr_alert:
+        out = out + " - "
+
+    if curr_alert:
+        out = out + "{}".format(curr_alert)
+
+    print(out)
+
+
+if __name__ == '__main__':
+    main()

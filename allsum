@@ -14,8 +14,7 @@ function md5(){
 }
 
 function print_sums() {
-    for file in $path
-    do
+    for file in $path; do
         echo ""
         echo "==> Sums for \"$file\""
         echo "==> MD5"

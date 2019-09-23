@@ -195,6 +195,13 @@ show_help() {
 # between some steps.
 #---
 main() {
+    echo "!!! The maintainer of this tool no longer has access to stu.cs.jmu.edu and therefore"
+    echo "    is unable to test that it actually works. If you have a problem (or need a newer"
+    echo "    version of ZSH than provided, please open an issue (or PR) at:"
+    echo "        https://github.com/kylelaker/useful_scripts"
+    echo "    (Alternatively, you could just ask a sysadmin to install ZSH)"
+    echo
+
     parse_args "$@"
     echo "==> Installing ZSH ${zsh_version}"
 

@@ -15,6 +15,8 @@
  * I recommend using this with https://github.com/kylelaker/binfmt if you don't
  * want to have to compile it.
  *
+ * You also might just be able to use nohup.
+ *
  * Licensed under the terms of the MIT License.
  */
 

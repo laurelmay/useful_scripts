@@ -87,18 +87,18 @@ def main():
 
     for station in STATIONS:
         if VERBOSE:
-            print("==> Trying {}".format(station))
+            print(f"==> Trying {station}")
         temp = temperature(station)
         if temp:
             temp = round(temp)
-            out = out + "{}\u00B0F".format(temp)
+            out = f"{out}{temp}\u00B0F @ {station}"
             break
 
     if temp and curr_alert:
-        out = out + " - "
+        out = f"{out} - "
 
     if curr_alert:
-        out = out + "{}".format(curr_alert)
+        out = f"{out}{curr_alert}"
 
     print(out)
 

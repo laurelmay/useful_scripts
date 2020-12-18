@@ -1,5 +1,0 @@
-#!/bin/sh
-# Open home directory on stu. This only works in Nemo
-
-user=$(id -urn)
-nemo "ssh://${user}@stu.cs.jmu.edu/cs/home/stu/${user}" &

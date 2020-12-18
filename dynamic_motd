@@ -22,20 +22,34 @@ purple="\e[0;35m";  bold_purple="\e[1;35m";
 cyan="\e[0;36m";    bold_cyan="\e[1;36m";
 white="\e[0;37m";   bold_white="\e[1;37m";
 
-numupdates=$(pacman -Qu | wc -l)
+command_exists() {
+  which "$1" &> /dev/null
+}
+
+if command_exists "pacman"; then
+  numupdates="$(pacman -Qu | wc -l)"
+elif command_exists "apt-get"; then
+  numupdates="$(apt-get -s dist-upgrade | grep -Po "^[[:digit:]]+ (?=upgraded)")"
+elif command_exists "yum"; then
+  numupdates="$(yum check-updates | awk 'p;/^$/{p=1}' | grep -c "\.")"
+else
+  numupdates="Unknown"
+fi
 
 if (( numupdates > 0 )); then
-    updates=${bold_red}${numupdates}${reset}
+  updates=${bold_red}${numupdates}${reset}
 else
-    updates=${bold_green}${numupdates}${reset}
+  updates=${bold_green}${numupdates}${reset}
 fi
 
 function maint_motd_text() {
-    echo -n "${red}"
+  echo -n "${red}"
+  if [ -r /etc/motd-main ]; then
     while read -r maintline; do
-        echo " ${maintline}";
+      echo " ${maintline}"
     done < /etc/motd-maint
-    echo -n "${reset}"
+  fi
+  echo -n "${reset}"
 }
 
 #Begin output

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+location="$(readlink -f "$0")"
+script_dir="$(dirname "$location")"
+
+# systemd doesn't need to be PID 0 in order to install these utilities but it
+# is necessary to at least have the systemd-path tool to comply with
+# file-hierarchy(7).
+bin_dir="$(systemd-path user-binaries)"
+
+echo "==> Installing scripts"
+for file in "$script_dir"/*; do
+    filename="$(basename "$file")"
+    if [ "$filename" == "$(basename "$location")" ]; then
+        echo "... Skipping $filename (the installer)"
+    elif [ -x "$file" ]; then
+        echo "... Installing ${filename}"
+        ln -s "$file" "${bin_dir}/${filename}"
+    else
+        echo "... Skipping ${filename} (not a script)"
+    fi
+done
+
+if [[ "$PATH" != *"$bin_dir"* ]]; then
+    echo "!!! PATH error: $bin_dir is not on the PATH"
+fi

@@ -8,17 +8,21 @@ curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "${tempdi
 echo "==> Unzipping installer"
 unzip -qq "${tempdir}/awscliv2.zip" -d "${tempdir}"
 
-install_command="aws/install"
+install_command=("aws/install")
 
 if [ -n "$*" ]; then
-    install_command="$install_command $*"
+    install_command+=("$@")
 fi
 
 if which "aws" > /dev/null 2>&1; then
-    install_command="$install_command --update"
+    install_command+=("--update")
 fi
 
 echo "==> Executing installer"
-echo "... $install_command"
-install_command="${tempdir}/${install_command}"
-sudo $install_command
+echo "... ${install_command[*]}"
+install_command[0]="${tempdir}/${install_command[0]}"
+sudo -- "${install_command[@]}" | while read -r line; do
+    echo "... $line"
+done
+version="$(aws --version | cut -d' ' -f1 | cut -d'/' -f2)"
+echo "==> New version: $version"

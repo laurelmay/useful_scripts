@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
 
-tempdir="$(mktemp -d)"
+set -e
+tempdir="$(mktemp --directory --suffix="-awsupdate")"
+
+trap 'cleanup $?' EXIT
+
+cleanup() {
+    if [[ "$VERBOSE" == "true" ]]; then
+        echo "==> Cleaning up $tempdir"
+    fi
+    rm -rf "$tempdir"
+}
 
 echo "==> Downloading latest AWS CLI v2"
-curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "${tempdir}/awscliv2.zip"
+curl --silent --location "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" --output "${tempdir}/awscliv2.zip"
 
 echo "==> Unzipping installer"
 unzip -qq "${tempdir}/awscliv2.zip" -d "${tempdir}"
@@ -18,8 +28,7 @@ if which "aws" > /dev/null 2>&1; then
     install_command+=("--update")
 fi
 
-echo "==> Executing installer"
-echo "... ${install_command[*]}"
+echo "==> Executing installer: ${install_command[*]}"
 install_command[0]="${tempdir}/${install_command[0]}"
 sudo -- "${install_command[@]}" | while read -r line; do
     echo "... $line"

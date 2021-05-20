@@ -1,16 +1,33 @@
 #!/usr/bin/env bash
-location="$(readlink -f "$0")"
-script_dir="$(dirname "$location")"
+systemd_exists() {
+    command -v systemd-path &> /dev/null
+}
+
+full_path() {
+    (cd "$(dirname "$1")" && pwd -P)
+}
+
+script_dir="$(full_path "$0")"
+script_name="$(basename "$0")"
 
 # systemd doesn't need to be PID 0 in order to install these utilities but it
 # is necessary to at least have the systemd-path tool to comply with
 # file-hierarchy(7).
-bin_dir="$(systemd-path user-binaries)"
+if systemd_exists; then
+    bin_dir="$(systemd-path user-binaries)"
+else
+    bin_dir="$HOME/.local/bin"
+fi
+
+if [ ! -d "$bin_dir" ]; then
+    echo "!!! $bin_dir does not exist. Creating it"
+    mkdir -p "$bin_dir"
+fi
 
 echo "==> Installing scripts"
 for file in "$script_dir"/*; do
     filename="$(basename "$file")"
-    if [ "$filename" == "$(basename "$location")" ]; then
+    if [ "$filename" == "$script_name" ]; then
         echo "... Skipping $filename (the installer)"
     elif [ -x "$file" ]; then
         echo "... Installing ${filename}"

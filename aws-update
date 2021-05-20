@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-tempdir="$(mktemp --directory --suffix="-awsupdate")"
+tempdir="$(mktemp -d -t "awsupdate")"
 
 trap 'cleanup $?' EXIT
 

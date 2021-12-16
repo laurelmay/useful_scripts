@@ -25,6 +25,7 @@ if [ -n "$*" ]; then
 fi
 
 if which "aws" > /dev/null 2>&1; then
+    echo "==> Replacing version: $(aws --version | cut -d' ' -f1 | cut -d'/' -f2)"
     install_command+=("--update")
 fi
 

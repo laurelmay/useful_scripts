@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
 set -e
-tempdir="$(mktemp -d -t "awsupdate")"
+if [[ "$(uname)" == "Linux" ]]; then
+    tempdir="$(mktemp --directory -t "awsupdate.XXXXXXXXXX")"
+else
+    tempdir="$(mktemp -d -t "awsupdate")"
+fi
 
 trap 'cleanup $?' EXIT
 

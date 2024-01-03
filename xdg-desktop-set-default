@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+
+import configparser
+import os
+import sys
+from pathlib import Path
+
+DESKTOP_ENTRY = "Desktop Entry"
+MIMETYPE = "MimeType"
+SEPARATOR = ";"
+DEFAULT_APP = "Default Applications"
+
+
+def get_xdg_config_home() -> Path:
+    fallback = Path.home() / ".config"
+    dir = Path(os.getenv("XDG_CONFIG_HOME") or fallback)
+    return dir if dir.is_absolute() else fallback
+
+
+def get_all_xdg_data_dir() -> list[Path]:
+    """
+    Returns the current or default values for XDG_DATA_HOME and
+    XDG_DATA_DIRS.
+    """
+    fallback_dirs = [Path("/usr/local/share"), Path("/usr/share")]
+    fallback_home = Path.home() / ".local" / "share"
+
+    dirs = []
+    data_dirs = (
+        os.getenv("XDG_DATA_DIRS").split(":")
+        if os.getenv("XDG_DATA_DIRS")
+        else fallback_dirs
+    )
+    data_dirs = [Path(path) for path in data_dirs if Path(path).is_absolute()]
+    dirs = data_dirs or fallback_dirs
+
+    data_home = Path(os.getenv("XDG_DATA_HOME") or fallback_home)
+    dirs.insert(0, data_home if data_home.is_absolute() else fallback_home)
+    return dirs
+
+
+MIMEAPPS = get_xdg_config_home() / "mimeapps.list"
+DESKTOP_SEARCH_PATH = [path / "applications" for path in get_all_xdg_data_dir()]
+
+
+def find_desktop_file(name: str) -> Path | None:
+    for search in DESKTOP_SEARCH_PATH:
+        full_path = search / name
+        if full_path.exists():
+            return full_path
+    return None
+
+
+def get_mimetypes(desktop_file: Path) -> list[str]:
+    config = configparser.ConfigParser()
+    config.read(desktop_file)
+    data = config[DESKTOP_ENTRY]
+    if not data:
+        raise Exception(
+            f"Invalid .desktop file: {desktop_file}. Missing {DESKTOP_ENTRY}"
+        )
+    mimes = data["MimeType"]
+    if not mimes:
+        return []
+    return mimes.split(SEPARATOR)
+
+
+def set_default_applications(desktop_file: str, mimetypes: list[str]) -> None:
+    mimeconfig = configparser.ConfigParser()
+    mimeconfig.read(MIMEAPPS)
+    defaults = mimeconfig[DEFAULT_APP] if DEFAULT_APP in mimeconfig.sections() else {}
+    for mime in mimetypes:
+        if mime:
+            defaults[mime] = desktop_file
+    with open(MIMEAPPS, "w") as mimeapps:
+        mimeconfig.write(mimeapps, space_around_delimiters=False)
+
+
+def usage(program, msg=None):
+    if msg:
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+        print(f"Usage: {program} DESKTOP_FILE")
+
+
+def main():
+    if len(sys.argv) != 2:
+        usage(sys.argv[0], "Must specify a desktop file")
+        return 1
+
+    filename = sys.argv[1]
+    file = find_desktop_file(sys.argv[1])
+    if not file:
+        print(f"Unable to fine {filename}", file=sys.stderr)
+        return 1
+    mimetypes = get_mimetypes(file)
+    if not mimetypes:
+        print(f"No mimetypes supported for {filename}", sys.stderr)
+    set_default_applications(filename, mimetypes)
+
+    print(f"Registered to {filename}:")
+    for mime in mimetypes:
+        print(f"  {mime}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
